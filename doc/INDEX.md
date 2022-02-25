@@ -18,7 +18,8 @@ And the Installation section just under explain how to set the script.
 ## 1. Installation
 
 Kui is shipped as a lua module but also as an "all in one file" script.
-Kui also require the `llloger` module to work.
+
+> Kui also require the [llloger](https://github.com/MrLixm/llloger) module to work.
 
 ### As module
 
@@ -48,7 +49,7 @@ more details.
 
 The same need to be done for the `llloger` module that you can find here :
 
-> https://github.com/MrLixm/Foundry_Katana/tree/main/src/utility/lua_logger
+> https://github.com/MrLixm/llloger
 
 You need to place in the root of the registered folder like :
 
