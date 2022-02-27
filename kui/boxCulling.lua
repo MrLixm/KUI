@@ -158,5 +158,4 @@ local function run()
 
 end
 
--- execute
-run()
+error("Module boxCulling not implemented yet")

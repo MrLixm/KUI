@@ -7,7 +7,6 @@ local logging = require("lllogger")
 local logger = logging:get_logger("kui.PointCloudData")
 logger:set_level("debug")
 logger.formatting:set_tbl_display_functions(false)
-logger.formatting:set_str_display_quotes(true)
 
 local utils = require("kui.utils")
 
