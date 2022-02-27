@@ -10,6 +10,7 @@ from pathlib import Path
 CONFIG = {
     "source": Path("../kui").resolve(),
     "target": Path(r"Z:\dccs\katana\library\shelf0006\lua"),
+    "copy_llloger": False,
     # determine from which git branch should llloger.lua be copied from
     "lllogger_branch": "main",
 }
@@ -57,7 +58,8 @@ def run():
     print(f"[{__name__}][run] copying src to target ...")
     subprocess.call(args)
 
-    copy_llloger(CONFIG.get("target"), CONFIG.get("lllogger_branch"))
+    if CONFIG.get("copy_llloger"):
+        copy_llloger(CONFIG.get("target"), CONFIG.get("lllogger_branch"))
 
     print(
         f"[{__name__}][run] Finished. Copied :\n"
