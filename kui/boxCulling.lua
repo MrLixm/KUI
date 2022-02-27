@@ -1,10 +1,10 @@
 --[[
-version=0.0.1
+version=0.0.2
 todo
 ]]
 
 local logging = require("lllogger")
-local logger = logging:new("kui.boxCulling")
+local logger = logging:get_logger("kui.boxCulling")
 logger.formatting:set_tbl_display_functions(false)
 logger.formatting:set_str_display_quotes(true)
 

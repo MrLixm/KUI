@@ -1,10 +1,10 @@
 --[[
-version=0.0.3
+version=0.0.4
 todo
 ]]
 
 local logging = require("lllogger")
-local logger = logging:new("kui.utils")
+local logger = logging:get_logger("kui.utils")
 -- log message from here are only error
 logger.formatting:set_tbl_display_functions(false)
 logger.formatting:set_str_display_quotes(true)
@@ -17,6 +17,7 @@ local function set_logger_level(self, level)
 end
 
 local _M = {}
+_M["logger"] = logger
 _M["set_logger_level"] = set_logger_level
 
 --[[ __________________________________________________________________________

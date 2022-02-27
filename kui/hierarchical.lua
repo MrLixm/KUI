@@ -1,14 +1,15 @@
 --[[
-version=0.0.18
+version=0.0.19
 todo
 ]]
 
 
 local logging = require("lllogger")
-local logger = logging:new("kui.hierarchical")
+local logger = logging:get_logger("kui.hierarchical")
 logger:set_level("debug")
 logger.formatting:set_tbl_display_functions(false)
 logger.formatting:set_str_display_quotes(true)
+logger.formatting:set_blocks_duplicate(false)
 
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
@@ -364,5 +365,6 @@ end
 return {
   ["run_root"] = atroot,
   ["run_not_root"] = finalize_instances,
-  ["set_logger_level"] = set_logger_level
+  ["set_logger_level"] = set_logger_level,
+  ["logger"] = logger
 }

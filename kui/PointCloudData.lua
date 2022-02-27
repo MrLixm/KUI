@@ -1,10 +1,10 @@
 --[[
-version=0.0.7
+version=0.0.8
 todo
 ]]
 
 local logging = require("lllogger")
-local logger = logging:new("kui.PointCloudData")
+local logger = logging:get_logger("kui.PointCloudData")
 logger:set_level("debug")
 logger.formatting:set_tbl_display_functions(false)
 logger.formatting:set_str_display_quotes(true)
@@ -21,7 +21,7 @@ local function set_logger_level(self, level)
   Propagate the level to all modules too
   ]]
   logger:set_level(level)
-  utils:set_logger_level(level)
+  utils.logger:set_level(level)
 end
 
 
@@ -122,6 +122,7 @@ end
 
 
 local PointCloudData = {}
+PointCloudData["logger"] = logger -- for external modif
 PointCloudData["set_logger_level"] = set_logger_level -- for external modif
 function PointCloudData:new(location, time)
   --[[

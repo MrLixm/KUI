@@ -1,10 +1,10 @@
 --[[
-version=0.0.6
+version=0.0.7
 todo
 ]]
 
 local logging = require("lllogger")
-local logger = logging:new("kui.array")
+local logger = logging:get_logger("kui.array")
 logger:set_level("debug")
 logger.formatting:set_tbl_display_functions(false)
 logger.formatting:set_str_display_quotes(true)
@@ -12,6 +12,14 @@ logger.formatting:set_str_display_quotes(true)
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
 
+local function set_logger_level(self, level)
+  --[[
+  Propagate the level to all modules too
+  ]]
+  logger:set_level(level)
+  PointCloudData:set_logger_level(level)
+  utils:set_logger_level(level)
+end
 
 --[[ __________________________________________________________________________
   API
@@ -135,17 +143,8 @@ local function run()
 end
 
 
-local function set_logger_level(self, level)
-  --[[
-  Propagate the level to all modules too
-  ]]
-  logger:set_level(level)
-  PointCloudData:set_logger_level(level)
-  utils:set_logger_level(level)
-end
-
-
 return {
   ["run"] = run,
-  ["set_logger_level"] = set_logger_level
+  ["set_logger_level"] = set_logger_level,
+  ["logger"] = logger
 }
