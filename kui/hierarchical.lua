@@ -147,9 +147,11 @@ function InstanceHierarchical:new(name, id)
     for target, arbtr_data in pairs(point_data["arbitrary"]) do
       -- 1. first process the additional table
       -- we only use arbtr_data for the <additional> key yet so we can do this
-      arbtr_data = arbtr_data["additional"]  -- type: table
-      for addit_target, addit_value in pairs(arbtr_data) do
-        self:add(addit_target, addit_value)
+      arbtr_data = arbtr_data["additional"]  -- type: table or NIL
+      if arbtr_data then
+        for addit_target, addit_value in pairs(arbtr_data) do
+          self:add(addit_target, addit_value)
+        end
       end
       -- 2. Add the arbitrary attribute value
       -- add() handle nil value by himself

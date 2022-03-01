@@ -1,5 +1,5 @@
 --[[
-version=0.0.7
+version=0.0.8
 todo
 ]]
 
@@ -32,12 +32,11 @@ local token_target = {
   { ["token"]="sources", ["target"]="geometry.instanceSource" },
   { ["token"]="index", ["target"]="geometry.instanceIndex" },
   { ["token"]="skip", ["target"]="geometry.instanceSkipIndex" },
-  -- if the pdata was validated, we for sure have rotationX/Y/Z
   { ["token"]="matrix", ["target"]="geometry.instanceMatrix" },
   { ["token"]="translation", ["target"]="geometry.instanceTranslate" },
-  { ["token"]="rotationZ", ["target"]="geometry.instanceRotateZ" },
-  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
   { ["token"]="rotationX", ["target"]="geometry.instanceRotateX" },
+  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
+  { ["token"]="rotationZ", ["target"]="geometry.instanceRotateZ" },
   { ["token"]="scale", ["target"]="geometry.instanceScale" },
 }
 
@@ -88,9 +87,11 @@ function InstancingArray:new(point_data)
     for target, arbtr_data in pairs(self.pdata["arbitrary"]) do
       -- 1. first process the additional table
       -- we only use arbtr_data for the <additional> key yet so we can do this
-      arbtr_data = arbtr_data["additional"]  -- type: table
-      for addit_target, addit_value in pairs(arbtr_data) do
-        self:add(addit_target, addit_value)
+      arbtr_data = arbtr_data["additional"]  -- type: table or NIL
+      if arbtr_data then
+        for addit_target, addit_value in pairs(arbtr_data) do
+          self:add(addit_target, addit_value)
+        end
       end
       -- 2. Add the arbitrary attribute value
       self:add(target,  self.pdata:get_attr_value(target))
