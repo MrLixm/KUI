@@ -338,6 +338,10 @@ Naming template used for instances. 3 tokens available :
 - `$sourceindex` : index attribute that was used to determine the instance
 source to pick.
 
+#### `user.log_level`
+
+Logging level to use. Availables are `debug, info, warning, error`.
+
 ### Array
 
 - `location` = target location for the instance array location (include its name)
@@ -346,6 +350,10 @@ source to pick.
 #### `user.pointcloud_sg`
 
 Scene graph location of the source (pointcloud)
+
+#### `user.log_level`
+
+Logging level to use. Availables are `debug, info, warning, error`.
 
 
 ## Misc
