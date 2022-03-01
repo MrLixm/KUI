@@ -1,14 +1,16 @@
 """
-version=8
+version=2
 Python 2+
 """
 from Katana import (
     UI4,
-    NodegraphAPI
+    NodegraphAPI,
+    KatanaFile,
+    Utils
 )
 
 frame = NodegraphAPI.GetCurrentTime()
-NAME = "KUIs.common.remove_row"
+NAME = "KUIs.arbitrary.remove_row"
 
 
 def update_node(node2update):
@@ -55,8 +57,7 @@ def update_node(node2update):
 
 def run():
 
-    teleparam = node.getParameter("user.common.array")
-    teleparam_expr = teleparam.getExpression()
+    teleparam = node.getParameter("user.arbitrary.array")
     teleparam_value = teleparam.getValue(frame)  # "nodeName.paramName"
 
     asnode, asparam = teleparam_value.split(".", 1)

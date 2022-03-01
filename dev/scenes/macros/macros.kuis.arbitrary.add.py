@@ -1,14 +1,14 @@
 """
-version=8
+version=2
 Python 2+
 """
 from Katana import (
-    UI4,
-    NodegraphAPI
+    NodegraphAPI,
+    UI4
 )
 
 frame = NodegraphAPI.GetCurrentTime()
-NAME = "KUIs.common.remove_row"
+NAME = "KUIs.arbitrary.add_row"
 
 
 def update_node(node2update):
@@ -55,8 +55,7 @@ def update_node(node2update):
 
 def run():
 
-    teleparam = node.getParameter("user.common.array")
-    teleparam_expr = teleparam.getExpression()
+    teleparam = node.getParameter("user.arbitrary.array")
     teleparam_value = teleparam.getValue(frame)  # "nodeName.paramName"
 
     asnode, asparam = teleparam_value.split(".", 1)
@@ -65,10 +64,19 @@ def run():
 
     # get current parameter structure
     array_size = asparam.getNumChildren()
-    tuple_size = asparam.getTupleSize()  # will be 5 for this button
+    tuple_size = asparam.getTupleSize()  # will be 6 for this button
 
-    # delete last row
-    asparam.resizeArray(array_size - tuple_size)
+    # add new row
+    asparam.resizeArray(array_size + tuple_size)
+
+    # modify each column of the new row
+    asparam.getChildByIndex(array_size + 0).setValue("SOURCE", frame)
+    asparam.getChildByIndex(array_size + 1).setValue("TARGET", frame)
+    asparam.getChildByIndex(array_size + 2).setValue("GROUPING", frame)
+    asparam.getChildByIndex(array_size + 3).setValue("1", frame)
+    asparam.getChildByIndex(array_size + 4).setValue("0", frame)
+    asparam.getChildByIndex(array_size + 5).setValue("", frame)
+    asparam.finalizeValue()
 
     update_node(node)
     print("[ButtonScript][{}][run] Finished.".format(NAME))
