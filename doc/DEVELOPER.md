@@ -1,8 +1,12 @@
 # Developer
 
-[![previous](https://img.shields.io/badge/culling-◀_previous_page-fcb434?labelColor=4f4f4f)](CULLING.md)
-[![root](https://img.shields.io/badge/back_to_root-536362)](../README.md)
-[![index](https://img.shields.io/badge/back_to_index-blue)](INDEX.md)
+[![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
+[![INDEX](https://img.shields.io/badge/index-4f4f4f?labelColor=blue)](INDEX.md)
+[![CONFIG_NODE](https://img.shields.io/badge/config--node-4f4f4f)](CONFIG_NODE.md)
+[![CONFIG_MANUAL](https://img.shields.io/badge/config--manual-4f4f4f)](CONFIG_MANUAL.md)
+[![CULLING](https://img.shields.io/badge/culling-4f4f4f)](CULLING.md)
+[![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
+[![DEVELOPER](https://img.shields.io/badge/developer-fcb434)](DEVELOPER.md)
 
 
 Section related to code development.
@@ -114,6 +118,10 @@ local attrs = {
 ```
 
 ---
-[![previous](https://img.shields.io/badge/culling-◀_previous_page-fcb434?labelColor=4f4f4f)](CULLING.md)
-[![root](https://img.shields.io/badge/back_to_root-536362)](../README.md)
-[![index](https://img.shields.io/badge/back_to_index-blue)](INDEX.md)
+[![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
+[![INDEX](https://img.shields.io/badge/index-4f4f4f?labelColor=blue)](INDEX.md)
+[![CONFIG_NODE](https://img.shields.io/badge/config--node-4f4f4f)](CONFIG_NODE.md)
+[![CONFIG_MANUAL](https://img.shields.io/badge/config--manual-4f4f4f)](CONFIG_MANUAL.md)
+[![CULLING](https://img.shields.io/badge/culling-4f4f4f)](CULLING.md)
+[![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
+[![DEVELOPER](https://img.shields.io/badge/developer-fcb434)](DEVELOPER.md)

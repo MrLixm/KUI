@@ -1,8 +1,12 @@
 # boxCulling
 
-[![previous](https://img.shields.io/badge/index-◀_previous_page-fcb434?labelColor=4f4f4f)](INDEX.md)
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
-[![next](https://img.shields.io/badge/▶_next_page-developer-4f4f4f?labelColor=fcb434)](DEVELOPER.md)
+[![INDEX](https://img.shields.io/badge/index-4f4f4f?labelColor=blue)](INDEX.md)
+[![CONFIG_NODE](https://img.shields.io/badge/config--node-4f4f4f)](CONFIG_NODE.md)
+[![CONFIG_MANUAL](https://img.shields.io/badge/config--manual-4f4f4f)](CONFIG_MANUAL.md)
+[![CULLING](https://img.shields.io/badge/culling-fcb434)](CULLING.md)
+[![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
+[![DEVELOPER](https://img.shields.io/badge/developer-4f4f4f)](DEVELOPER.md)
 
 
 One of Kui's module.
@@ -36,7 +40,10 @@ work.
   bounding box shall be used to prune points.
 
 ---
-
-[![previous](https://img.shields.io/badge/index-◀_previous_page-fcb434?labelColor=4f4f4f)](INDEX.md)
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
-[![next](https://img.shields.io/badge/▶_next_page-developer-4f4f4f?labelColor=fcb434)](DEVELOPER.md)
+[![INDEX](https://img.shields.io/badge/index-4f4f4f?labelColor=blue)](INDEX.md)
+[![CONFIG_NODE](https://img.shields.io/badge/config--node-4f4f4f)](CONFIG_NODE.md)
+[![CONFIG_MANUAL](https://img.shields.io/badge/config--manual-4f4f4f)](CONFIG_MANUAL.md)
+[![CULLING](https://img.shields.io/badge/culling-fcb434)](CULLING.md)
+[![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
+[![DEVELOPER](https://img.shields.io/badge/developer-4f4f4f)](DEVELOPER.md)
