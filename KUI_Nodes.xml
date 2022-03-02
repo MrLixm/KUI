@@ -28,7 +28,7 @@
           <string_parameter name="CEL" value="(( /root/world/geo/output))"/>
           <string_parameter expression="=^/user.instance_location" name="location"/>
           <group_parameter name="script">
-            <string_parameter name="lua" value="-- version=2&#0010;local hier = require(&quot;kui.hierarchical&quot;)&#0010;local utils = require(&quot;kui.utils&quot;)&#0010;-- don&apos;t print/log anything here, repeated times number of points.&#0010;&#0010;if Interface.AtRoot() then&#0010;  local log_level = utils:get_user_attr(Interface.GetCurrentTime(), &quot;log_level&quot;, &quot;info&quot;)[1]&#0010;  hier:set_logger_level(log_level)&#0010;  hier:run_root()&#0010;&#0010;else&#0010;  -- don&apos;t print/log anything here too, repeated times number of points.&#0010;  hier:run_not_root()&#0010;end"/>
+            <string_parameter name="lua" value="--[[&#0010;version=2&#0010;&#0010;[LICENSE]&#0010;&#0010;Copyright 2022 Liam Collod&#0010;&#0010;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#0010;you may not use this file except in compliance with the License.&#0010;You may obtain a copy of the License at&#0010;&#0010;   http://www.apache.org/licenses/LICENSE-2.0&#0010;&#0010;Unless required by applicable law or agreed to in writing, software&#0010;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#0010;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#0010;See the License for the specific language governing permissions and&#0010;limitations under the License.&#0010;]]&#0010;local hier = require(&quot;kui.hierarchical&quot;)&#0010;local utils = require(&quot;kui.utils&quot;)&#0010;-- don&apos;t print/log anything here, repeated times number of points.&#0010;&#0010;if Interface.AtRoot() then&#0010;  local log_level = utils:get_user_attr(Interface.GetCurrentTime(), &quot;log_level&quot;, &quot;info&quot;)[1]&#0010;  hier:set_logger_level(log_level)&#0010;  hier:run_root()&#0010;&#0010;else&#0010;  -- don&apos;t print/log anything here too, repeated times number of points.&#0010;  hier:run_not_root()&#0010;end"/>
           </group_parameter>
           <string_parameter name="executionMode" value="immediate"/>
           <string_parameter name="applyWhere" value="at specific location"/>
@@ -77,7 +77,7 @@
           <string_parameter name="CEL" value="(( /root/world/geo/output))"/>
           <string_parameter expression="=^/user.Data.array_name" name="location"/>
           <group_parameter name="script">
-            <string_parameter name="lua" value="-- version=2&#0010;local array = require(&quot;kui.array&quot;)&#0010;local utils = require(&quot;kui.utils&quot;)&#0010;&#0010;local log_level = utils:get_user_attr(Interface.GetCurrentTime(), &quot;log_level&quot;, &quot;info&quot;)[1]&#0010;array:set_logger_level(log_level)&#0010;array:run()&#0010;"/>
+            <string_parameter name="lua" value="--[[&#0010;version=2&#0010;&#0010;[LICENSE]&#0010;&#0010;Copyright 2022 Liam Collod&#0010;&#0010;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#0010;you may not use this file except in compliance with the License.&#0010;You may obtain a copy of the License at&#0010;&#0010;   http://www.apache.org/licenses/LICENSE-2.0&#0010;&#0010;Unless required by applicable law or agreed to in writing, software&#0010;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#0010;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#0010;See the License for the specific language governing permissions and&#0010;limitations under the License.&#0010;]]&#0010;local array = require(&quot;kui.array&quot;)&#0010;local utils = require(&quot;kui.utils&quot;)&#0010;&#0010;local log_level = utils:get_user_attr(Interface.GetCurrentTime(), &quot;log_level&quot;, &quot;info&quot;)[1]&#0010;array:set_logger_level(log_level)&#0010;array:run()&#0010;"/>
           </group_parameter>
           <string_parameter name="executionMode" value="immediate"/>
           <string_parameter name="applyWhere" value="at specific location"/>
@@ -96,7 +96,7 @@
         </group_parameter>
       </node>
     </node>
-    <node baseType="Group" edited="true" eyepointx="-1461.31" eyepointy="739.438" eyepointz="0.0" name="KUISetup_0001" ns_basicDisplay="1.0" ns_errorGlow="0.0" ns_fromContext="legacy" ns_iconName="" ns_viewState="2.0" selected="true" type="Group" viewscalex="1.0" viewscaley="1.0" viewscalez="1.0" x="-2656" y="496">
+    <node baseType="Group" eyepointx="-1461.31" eyepointy="739.438" eyepointz="0.0" name="KUISetup_0001" ns_basicDisplay="1.0" ns_errorGlow="0.0" ns_fromContext="legacy" ns_iconName="" ns_viewState="2.0" selected="true" type="Group" viewscalex="1.0" viewscaley="1.0" viewscalez="1.0" x="-2656" y="496">
       <port name="i0" type="in"/>
       <port name="o0" type="out"/>
       <group_parameter name="KUISetup_0001">
