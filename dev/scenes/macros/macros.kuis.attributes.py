@@ -1,5 +1,5 @@
 """
-version=2
+version=4
 Python 2+
 
 This snippet is used on KUI Setup node ScriptButtons parameters.
@@ -65,7 +65,8 @@ def update_node(node2update, logger):
     new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list
     new_node = new_node[0]  # type: NodegraphAPI.Node
     NodegraphAPI.SetNodePosition(new_node, sn_pos)
-    sn_port_in.connect(new_node.getInputPortByIndex(0))
+    if sn_port_in:
+        sn_port_in.connect(new_node.getInputPortByIndex(0))
     for port in sn_port_out_list:
         port.connect(new_node.getOutputPortByIndex(0))
 
@@ -82,9 +83,6 @@ def run():
     """
     This function runs for all buttons.
     """
-
-    parameter = parameter  # type: NodegraphAPI.Parameter
-    node = node  # type: NodegraphAPI.Node
 
     # ex: parameter.getName() = "add_row_arbitrary"
     context = parameter.getName().rsplit("_", 1)[-1]
