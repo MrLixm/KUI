@@ -45,22 +45,25 @@ end
 ]]
 
 
--- list of supported tokens with useful info used internally
--- <force_type==bool or DataAttribute>
---    force use of this type of DoubleAttribute for values.
+--[[
+list of supported tokens with useful info used internally
+<force_type==bool or DataAttribute>
+   force use of this type of DoubleAttribute for values.
+<mb==bool>
+  true to make the attributes use multiple time samples for motion blur.
+]]
 local Tokens = {
       ["list"] = {
-        ["points"]       = { ["force_type"]=false },
-        ["index"]        = { ["force_type"]=IntAttribute },
-        ["skip"]         = { ["force_type"]=IntAttribute },
-        ["hide"]         = { ["force_type"]=IntAttribute },
-        ["matrix"]       = { ["force_type"]=DoubleAttribute },
-        ["translation"]  = { ["force_type"]=DoubleAttribute },
-        ["scale"]        = { ["force_type"]=DoubleAttribute },
-        ["rotation"]     = { ["force_type"]=DoubleAttribute },
-        ["rotationX"]    = { ["force_type"]=DoubleAttribute },
-        ["rotationY"]    = { ["force_type"]=DoubleAttribute },
-        ["rotationZ"]    = { ["force_type"]=DoubleAttribute }
+        ["index"]        = { ["force_type"]=IntAttribute, ["mb"]=false },
+        ["skip"]         = { ["force_type"]=IntAttribute, ["mb"]=false },
+        ["hide"]         = { ["force_type"]=IntAttribute, ["mb"]=false },
+        ["matrix"]       = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["translation"]  = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["scale"]        = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["rotation"]     = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["rotationX"]    = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["rotationY"]    = { ["force_type"]=DoubleAttribute, ["mb"]=true },
+        ["rotationZ"]    = { ["force_type"]=DoubleAttribute, ["mb"]=true }
       }
 }
 function Tokens:check_token(token)
@@ -94,12 +97,13 @@ end
 local AttrGrp = {
   ["common"] = 5,
   ["arbitrary"] = 6,
-  ["sources"] = 2
+  ["sources"] = 2,
+  ["points"] = 2  -- not actually used
 }
 
 
 local function build_attr_structure(
-    path, grouping, multiplier, additive, values, type, processed
+    path, grouping, multiplier, additive, values, class, processed
 )
   --[[
   Build the table for a <common> or an <arbitrary> attribute
@@ -111,13 +115,13 @@ local function build_attr_structure(
     grouping(num):
     multiplier(num): multiplier to apply to values
     additive(num): offset to apply to values
-    values(table): value should always be a numerical index table
-    type(DataAttribute): with what Data type values must be encoded
+    values(table): value should be a table of time samples with at least 0.0
+    class(DataAttribute): which class of DataAttribute values must be encoded with.
     processed(table or nil): optional, usually build in PointCloudData._build_processed_key
   ]]
 
   if path == nil or grouping==nil or multiplier==nil or additive==nil or
-  values==nil or type==nil then
+  values==nil or class==nil then
     -- shittiest error message but don't want to complexify the function
     utils:logerror("[build_attr_structure] One of the supplied arguments is nil")
   end
@@ -128,7 +132,7 @@ local function build_attr_structure(
     ["multiplier"] = multiplier,
     ["additive"] = additive,
     ["values"] = values,
-    ["type"] = type,
+    ["type"] = class,
     ["processed"] = processed,
   }
 
@@ -222,7 +226,7 @@ function PointCloudData:new(location, time)
 
   end
 
-  function attrs:get_attr_value(attr_name, pid, raw)
+  function attrs:get_attr_value(attr_name, pid, raw, static)
     --[[
     Return the values for the given attribute name.
     It can be a slice for the given pid, or the entire range of values.
@@ -244,12 +248,17 @@ function PointCloudData:new(location, time)
         If true return the values as their corresponding DataAttribute instance.
         false by default (if nil)
 
+      static(bool or nil):
+        If true return the default time sample 0.0 instead of a table of time samples.
+
     Returns:
       DataAttribute or table or nil:
         DataAttribute instance or nil if <attr_name> is empty (=false).
     ]]
 
     local buf
+    local smplbuf
+    local attrdata
 
     if attr_name == "sources" then
       buf = {}
@@ -264,33 +273,56 @@ function PointCloudData:new(location, time)
       end
     end
 
-
-
-    -- this set self.__attrdata
-    self:_get_attr_data(attr_name)
-    if not self.__attrdata then
+    attrdata = self:_get_attr_data(attr_name)
+    if attrdata then
       --logger:debug("attr_name<", attr_name, "> is not initialized. (false)")
       return nil
     end
 
     -- no point specified, return all the values
     if pid == nil then
-      buf = self.__attrdata["processed"]  -- table
+
+      smplbuf = attrdata["processed"]  -- table
+      if static == true then
+        smplbuf = attrdata["processed"][0.0]
+      end
+
     -- else return a slice of the table
     else
-      buf = {}
-      -- grouping usually vary between 1 and 16(matrices), so small loop.
-      for grpi=1, self.__attrdata["grouping"] do
-        buf[#buf + 1] = self.__attrdata["processed"][self.__attrdata["grouping"] * pid + grpi]
+
+      -- we can't filter the time samples AFTER as we would loss the performance
+      -- improvement. So yeah a bit of duplicated code.
+      if static == true then
+
+        smplbuf = {}
+        -- grouping usually vary between 1 and 16(matrices), so small loop.
+        for grpi=1, attrdata["grouping"] do
+          smplbuf[#smplbuf + 1] = attrdata["processed"][attrdata["grouping"] * pid + grpi]
+        end
+
+      else
+        -- process all time samples :
+        smplbuf = {}
+        for smpl, processedvalue in pairs(attrdata["processed"]) do
+
+          buf = {}
+          -- grouping usually vary between 1 and 16(matrices), so small loop.
+          for grpi=1, attrdata["grouping"] do
+            buf[#buf + 1] = processedvalue[attrdata["grouping"] * pid + grpi]
+          end
+
+          smplbuf[smpl] = buf
+        end
+      -- end if static
       end
+    -- end if pid
     end
 
-
-    -- return as Katana DataAttribute, with the tuple size specified from grouping
     if raw==true then
-      return buf
+      return smplbuf
     else
-      return self.__attrdata["type"](buf, self.__attrdata["grouping"])
+      -- return as Katana DataAttribute, with the tuple size specified from grouping
+      return attrdata["type"](smplbuf, attrdata["grouping"])
     end
 
   end
@@ -302,7 +334,7 @@ function PointCloudData:new(location, time)
     Returns:
       num:
     ]]
-    local index = self:get_attr_value("index", pid, true)  -- table
+    local index = self:get_attr_value("index", pid, true, true)  -- table
     index = index[1]
     return index
   end
@@ -321,7 +353,7 @@ function PointCloudData:new(location, time)
       bool: true if the point is hidden and thus should not be created
     ]]
 
-    local data = self:get_attr_value("hide", pid, true) -- table of 0/1
+    local data = self:get_attr_value("hide", pid, true, true) -- table of 0/1
     if not data then
       return false
     end
@@ -366,9 +398,10 @@ function PointCloudData:new(location, time)
 
   function attrs:build()
 
+    -- query data on source to build self
     self:_build_settings()
+    self:_build_point_count()
 
-    -- query data on source to build the table
     self:_build_common()
     self:_build_arbitrary()
     self:_build_sources()
@@ -407,20 +440,28 @@ function PointCloudData:new(location, time)
       return
     end
 
-    local source_values
 
     -- convert the rotationX/Y/Z tokens
     for _, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
-      source_values = self.common[token].processed
-      for i=0, #source_values / 4 - 1 do
-        -- make sure teh axis are not processed !
-        source_values[i * 4 + 1] = convert_func(source_values[i * 4 + 1])
+
+      for smpl, source_values in pairs(self.common[token].processed) do
+
+        for i=0, #source_values / 4 - 1 do
+          -- make sure the axis are not processed !
+          source_values[i * 4 + 1] = convert_func(source_values[i * 4 + 1])
+        end
+
       end
+
     end
-    -- convert the rotation token
-    source_values = self.common.rotation.processed
-    for i, v in ipairs(source_values) do
-      source_values[i] = convert_func(v)
+
+    -- convert the rotation token TODO is it useful ?
+    for smpl, source_values in pairs(self.common.rotation.processed) do
+
+      for i, v in ipairs(source_values) do
+        source_values[i] = convert_func(v)
+      end
+
     end
 
     logger:debug(
@@ -442,46 +483,52 @@ function PointCloudData:new(location, time)
       return
     end
 
-    local rx = {}
-    local ry = {}
-    local rz = {}
-
-    local rall_data = {
-      { rx, {1.0, 0.0, 0.0} }, -- x
-      { ry, {0.0, 1.0, 0.0} }, -- y
-      { rz, {0.0, 0.0, 1.0} }  -- z
+    local rall_axis = {
+      { {1.0, 0.0, 0.0} }, -- x
+      { {0.0, 1.0, 0.0} }, -- y
+      { {0.0, 0.0, 1.0} }  -- z
     }
-    local rvalues local raxis
 
-    -- /!\ Perfs
-    -- iterate trough all rotation values with are assumed to be in x,y,z order
-    -- grouping can only be 3
-    for i=0, #self.common.rotation.values / self.common.rotation.grouping - 1 do
-
-      -- iterate trough each axis x,y,z
-      for rindex, rdata in ipairs(rall_data) do
-        -- rindex=[1,2,3] ; rdata=[{ {}, {1.0, 0.0, 0.0} }, ...]
-        rvalues, raxis = rdata[1], rdata[2]
-
-        rvalues[#rvalues + 1] = self.common.rotation.values[i*self.common.rotation.grouping + rindex]
-        rvalues[#rvalues + 1] = raxis[1]
-        rvalues[#rvalues + 1] = raxis[2]
-        rvalues[#rvalues + 1] = raxis[3]
-      end
-
-    end
+    local rot_samples
+    local rot_converted
+    local raxis
+    -- rotation.grouping can only be 3
+    local length = #self.common.rotation.values[0.0] / self.common.rotation.grouping - 1
 
     for i, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
+
+      rot_samples = {}
+      raxis = rall_axis[i]
+
+      for smpl, rotation_values in pairs(self.common.rotation.values) do
+
+        rot_converted = {}
+
+        for rindex=0, length do
+
+          rot_converted[#rot_converted + 1] = rotation_values[i*self.common.rotation.grouping + rindex]
+          rot_converted[#rot_converted + 1] = raxis[1]
+          rot_converted[#rot_converted + 1] = raxis[2]
+          rot_converted[#rot_converted + 1] = raxis[3]
+
+        end
+
+        rot_samples[smpl] = rot_converted
+
+      end
+
       self["common"][token] = build_attr_structure(
         "$rotation",
         4,
         self.common.rotation.multiplier,
         self.common.rotation.additive,
-        rall_data[i][1],
+        rot_samples,
         self.common.rotation.type,
         nil
       )
+
     end
+
     logger:debug("[PointCloudData][_convert_rotation2rotationaxis] Finished.")
 
   end
@@ -560,6 +607,8 @@ function PointCloudData:new(location, time)
       )
       return
     end
+
+    -- TODO check and remove this
     if utils.get_katana_version() < 400 then
       logger:error(
         "[PointCloudData][_convert_to_matrix] Aborted. Current Katana version <",
@@ -572,6 +621,8 @@ function PointCloudData:new(location, time)
     local v
     local matrices = {}
     local m44
+    local im44d = Imath.M44d
+    local iv3d = Imath.V3d
 
     -- safety check
     if self.point_count * 16 >= 2^27 then
@@ -586,10 +637,10 @@ function PointCloudData:new(location, time)
     for i=0, self.point_count - 1 do
 
       -- translation
-      m44 = Imath.M44d()
+      m44 = im44d()
       v = self:get_attr_value("translation", i, true)
       if v then
-        m44:translate(Imath.V3d(v))
+        m44:translate(iv3d(v))
       end
 
       -- rotations
@@ -598,13 +649,13 @@ function PointCloudData:new(location, time)
         v = {utils.degree_to_radian(v[1])}
         v[2] = utils.degree_to_radian(self:get_attr_value("rotationY", i, true)[1])
         v[3] = utils.degree_to_radian(self:get_attr_value("rotationZ", i, true)[1])
-        m44:rotate(Imath.V3d(v))
+        m44:rotate(iv3d(v))
       end
 
       -- scale
       v = self:get_attr_value("scale", i, true)
       if v then
-        m44:scale(Imath.V3d(v))
+        m44:scale(iv3d(v))
       end
 
       -- combine the created matrix to the matrices table
@@ -645,21 +696,47 @@ function PointCloudData:new(location, time)
 
     local setting
 
-    setting = utils:get_loc_attr(
+    setting = utils:get_attr_value(
         self.location,
         "instancing.settings.convert_degree_to_radian",
-        self.time,
         { 0 }
     ) -- type: table
     self.settings.convert_degree_to_radian = setting[1]
 
-    setting = utils:get_loc_attr(
+    setting = utils:get_attr_value(
         self.location,
         "instancing.settings.convert_trs_to_matrix",
-        self.time,
         { 0 }
     ) -- type: table
     self.settings.convert_trs_to_matrix = setting[1]
+
+    setting = utils:get_attr_value(
+        self.location,
+        "instancing.settings.enable_motion_blur",
+        { 0 }
+    ) -- type: table
+    self.settings.enable_motion_blur = setting[1]
+
+  end
+
+  function attrs:_build_point_count()
+    --[[
+    Set the self.point_count variable based on the point attribute submitted.
+    ]]
+
+    local data_points = utils:get_attr_value(
+      self.location,
+      "instancing.data.points",
+      error
+    )
+
+    local points = utils:get_attr_value(
+      self.location,
+      data_points[1],
+      error
+    )
+
+    self.point_count = #points / data_points[2]
 
   end
 
@@ -680,10 +757,10 @@ function PointCloudData:new(location, time)
     ]]
 
       -- get the attribute on the pc
-    local data_sources = utils:get_loc_attr(
+    local data_sources = utils:get_attr_value(
         self.location,
         "instancing.data.sources",
-        self.time
+        error
     )
 
     local path
@@ -717,10 +794,9 @@ function PointCloudData:new(location, time)
     ]]
 
     -- get the attribute on the pc
-    local data_arbtr = utils:get_loc_attr(
+    local data_arbtr = utils:get_attr_value(
         self.location,
         "instancing.data.arbitrary",
-        self.time,
         0
     )
     -- if attribute was not found
@@ -733,25 +809,25 @@ function PointCloudData:new(location, time)
     local multiplier
     local additive
     local path
-    local pcvalues
-    local value_type
+    local attr_data
     local additional
     self["arbitrary"] = {}
 
-    -- start building the arbitrary key ------------------------------------------
+    -- start building the arbitrary key ---------------------------------------
     for i=0, #data_arbtr / AttrGrp.arbitrary - 1 do
 
       path = data_arbtr[AttrGrp.arbitrary*i+1]
+      attr_data = utils:get_attr_data(
+          self.location,
+          path,
+          error,
+          self.settings.enable_motion_blur == 0
+      )
+
       target = data_arbtr[AttrGrp.arbitrary*i+2]
       grouping = tonumber(data_arbtr[AttrGrp.arbitrary*i+3])
-      multiplier = tonumber(data_arbtr[AttrGrp.arbitrary*i+4])
-      if not multiplier then
-        multiplier = 1
-      end
-      additive = tonumber(data_arbtr[AttrGrp.arbitrary*i+5])
-      if not additive then
-        additive = 0
-      end
+      multiplier = tonumber(data_arbtr[AttrGrp.arbitrary*i+4] or 1)
+      additive = tonumber(data_arbtr[AttrGrp.arbitrary*i+5] or 0)
       additional = data_arbtr[AttrGrp.arbitrary*i+6]
       if additional then
         additional = utils:logassert(
@@ -763,7 +839,6 @@ function PointCloudData:new(location, time)
         )
         additional = additional()  -- this should be a table
       end
-      pcvalues, value_type = utils:get_loc_attr(self.location, path, self.time)
 
       -- process special cases here --------------------
       -- none yet
@@ -773,8 +848,8 @@ function PointCloudData:new(location, time)
         grouping,
         multiplier,
         additive,
-        pcvalues,
-        value_type,
+        attr_data.values,
+        attr_data.class,
         nil
       )
       self["arbitrary"][target]["additional"] = additional
@@ -793,14 +868,13 @@ function PointCloudData:new(location, time)
       [2] value grouping : how much value belongs to an individual point.
       [3] value multiplier : quick way to multiply values.
 
-    The $points token require a special processing.
     ]]
 
       -- get the attribute on the pc
-    local data_common = utils:get_loc_attr(
+    local data_common = utils:get_attr_value(
         self.location,
         "instancing.data.common",
-        self.time
+        error
     )
 
     local token
@@ -808,60 +882,59 @@ function PointCloudData:new(location, time)
     local multiplier
     local additive
     local path
-    local pcvalues
-    local value_type
+    local attr_data
+    local class
+    local values
     local processed
-    local pointsvalue = {}
+    local pointsvalue
 
     -- start building the common key ------------------------------------------
     for i=0, #data_common / AttrGrp.common - 1 do
 
       path = data_common[AttrGrp.common*i+1]
+
       token = Tokens:check_token(data_common[AttrGrp.common*i+2]) -- return without the "$" !
       grouping = tonumber(data_common[AttrGrp.common*i+3])
-      multiplier = tonumber(data_common[AttrGrp.common*i+4])
-      if not multiplier then
-        multiplier = 1
-      end
-      additive = tonumber(data_common[AttrGrp.common*i+5])
-      if not additive then
-        additive = 0
-      end
-      pcvalues, value_type = utils:get_loc_attr(self.location, path, self.time)
+      multiplier = tonumber(data_common[AttrGrp.common*i+4] or 1)
+      additive = tonumber(data_common[AttrGrp.common*i+5] or 0)
       processed = nil
 
-      -- process special cases here --------------------
-      if token == "points" then
-        -- TODO Should we let the original values/grouping/mult and
-        -- only set  point_count or is the current solution of
-        -- cleaning the array good ?
-        --
-        -- <values> key should always be a table so just fill it with 0 here
-        pointsvalue = {}
-        for pointindex=1, #pcvalues / grouping * multiplier do
-          pointsvalue[pointindex] = 0
-        end
-        pcvalues = pointsvalue
-        processed = pointsvalue
-        grouping = 1
-        multiplier = 1
-        self["point_count"] = #pointsvalue + additive
-        additive = 0
-
-      elseif token == "index" or token == "skip" then
+      if token == "index" or token == "skip" then
         -- for <index> and <skip> token, make sure to convert grouping to 1
         -- the last index from the group is used ({2,2,<2>})
+
+        attr_data = utils:get_attr_value(
+          self.location,
+          path,
+          error
+        )  -- table
+
         pointsvalue = {}
-        for pointindex=1, #pcvalues / grouping do
-          pointsvalue[pointindex] = pcvalues[pointindex * grouping]
+        for pointindex=1, #attr_data / grouping do
+          pointsvalue[pointindex] = attr_data[pointindex * grouping]
         end
-        pcvalues = pointsvalue
+        pointsvalue[0.0] = pointsvalue  -- time sample 0.0 (default)
+        values = pointsvalue
         grouping = 1
+        -- <class> is declared just after
+
+      else
+        -- for all other tokens :
+        attr_data = utils:get_attr_data(
+          self.location,
+          path,
+          error,
+          self.settings.enable_motion_blur == 0
+        )
+        class = attr_data.class
+        values = attr_data.values
 
       end
+
+
       -- force some tokens with a pre-defined DataAttribute type.
       if Tokens.list[token].force_type ~= false then
-        value_type = Tokens.list[token].force_type
+        class = Tokens.list[token].force_type
       end
 
     self["common"][token] = build_attr_structure(
@@ -869,8 +942,8 @@ function PointCloudData:new(location, time)
       grouping,
       multiplier,
       additive,
-      pcvalues,
-      value_type,
+      values,
+      class,
       -- can be nil so not created
       processed
     )
@@ -889,9 +962,9 @@ function PointCloudData:new(location, time)
     ]]
 
     -- attr points must always exists
-    if not self.common.points then
+    if not self.point_count then
       utils:logerror(
-          "[PointCloudData][_validate] Missing token $points on source <",
+          "[PointCloudData][_validate] point_count was not found for <",
           self.location,
           ">."
       )
@@ -1060,7 +1133,7 @@ function PointCloudData:new(location, time)
 
     Must be executed after <self._validate>
     ]]
-    local value
+    local processed = {}
     -- we build the <processed> key
     for _, source in pairs({"common", "arbitrary"}) do
 
@@ -1068,12 +1141,20 @@ function PointCloudData:new(location, time)
         -- attr_data can be false and not be built,
         -- also check that there is not already the processed key
         if attr_data and self[source][token]["processed"] == nil then
-          value = attr_data["values"]
-          for i, v in ipairs(value) do
-            value[i] = v * attr_data["multiplier"] + attr_data["additive"]
+
+          -- iterate first through time samples
+          for sampletime, values in pairs(attr_data["values"]) do
+
+            for i, v in ipairs(values) do
+              values[i] = v * attr_data["multiplier"] + attr_data["additive"]
+            end
+
+            processed[sampletime] = values
           end
+
           -- create the new <processed> key.
-          self[source][token]["processed"] = value
+          self[source][token]["processed"] = processed
+
         end
 
       end

@@ -52,24 +52,14 @@ additional attribute `additional` (and key is not a token).
 ```lua
 -- attributes at init time  
 local attrs = {
+    ["__attrdata"]=false,
     ["time"]=time,
     ["location"]=location,
-    ["common"]={
-      ["scale"]=false,
-      ["rotation"]=false,
-      ["translation"]=false,
-      ["index"]=false,
-      ["skip"]=false,
-      ["hide"]=false,
-      ["points"]=false,
-      ["matrix"]=false,
-      ["rotationX"]=false,
-      ["rotationY"]=false,
-      ["rotationZ"]=false
-    },
+    ["common"]={},
     ["sources"]=false,
     ["arbitrary"]={},
-    ["point_count"]=false
+    ["point_count"]=false,
+    ["settings"] = {}
   }
 
 ```
@@ -85,6 +75,7 @@ local attrs = {
 	...
   }
 ```
+
 ### attrs.arbitrary
 ```lua
   arbitrary = {
@@ -114,6 +105,15 @@ local attrs = {
       ["processed(table)"] = "Values but processed. Correspond to <values> * <multiplier> + <additive>."
     },
     ...
+  }
+```
+
+### attrs.settings
+```lua
+  settings = {
+    ["convert_degree_to_radian(num)"]= "-1, 0 or 1",
+    ["convert_trs_to_matrix(num)"]= "0 or 1",
+    ["enable_motion_blur(num)"]= "0 or 1",
   }
 ```
 

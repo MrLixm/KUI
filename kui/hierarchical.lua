@@ -325,8 +325,8 @@ local function create_instances()
   local stime = os.clock()
   local time = Interface.GetCurrentTime() -- int
 
-  local u_pointcloud_sg = utils:get_user_attr( time, "pointcloud_sg", "$error" )[1]
-  local u_instance_name = utils:get_user_attr( time, "instance_name", "$error" )[1]
+  local u_pointcloud_sg = utils:get_user_attr("pointcloud_sg", error)[1]
+  local u_instance_name = utils:get_user_attr("instance_name", error)[1]
 
   -- process the source pointcloud
   logger:info("Started processing source <", u_pointcloud_sg, ">.")

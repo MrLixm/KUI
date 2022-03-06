@@ -1,5 +1,5 @@
 --[[
-version=0.0.4
+version=5
 
 [LICENSE]
 
@@ -90,7 +90,7 @@ end
 ]]
 
 
-function _M:get_attribute_class(kattribute)
+local function _get_attribute_class(kattribute)
   --[[
   Returned a non-instanced version of the class type used by the given arg.
 
@@ -108,8 +108,8 @@ function _M:get_attribute_class(kattribute)
   elseif Attribute.IsString(kattribute) == true then
     return StringAttribute
   else
-    self:logerror(
-      "[get_attribute_class] passed attribute <",
+    _M:logerror(
+      "[_get_attribute_class] passed attribute <",
       kattribute,
       ">is not supported."
     )
@@ -117,83 +117,210 @@ function _M:get_attribute_class(kattribute)
 end
 
 
-function _M:get_loc_attr(location, attr_path, time, default)
+local function _get_attr_data(location, attr_path, static)
   --[[
-  Get the given attribute on the location at given time.
-  Raise an error is nil result is found or return <default> if specified.
-
-  If default is not nil and the attribute is not found, it is instead returned.
+  Get the given attribute on the location.
+  Return it as a lua table describing the DataAttribute structure it had.
 
   Args:
     location(str): scene graph location to extract teh attribute from
     attr_path(str): path of the attribute on the location
-    time(int): frame to extract the value from
-    default(any or nil): value to return if attribute not found.
+    static(bool or nil): if false the attribute is multi-sampled
   Returns:
-    table: table of 2: {value table, table representing the original data type}
+    table or nil:
+      table[class] = DataAttribute class not instanced
+      table[tuple] = num, tuple size of the orignal DataAttribute
+      table[values] = table of values with time samples
+      table[length] = number of values in each values' key time-sample
   ]]
 
   local lattr = Interface.GetAttr(attr_path, location)
-
   if not lattr then
-
-    if default ~= nil then
-      return default
-    end
-
-    self:logerror(
-      "[get_loc_attr] Attr <",attr_path,"> not found on source <",location,">."
-    )
-
+    return nil
   end
 
-  local lattr_type = self:get_attribute_class(lattr)
+  local out = {}
+  local values = {}
+  out["class"] = _get_attribute_class(lattr)
+  out["tuple"] = lattr:getTupleSize()
+  out["length"] = lattr:getNumberOfValues()
 
-  lattr = lattr:getNearestSample(time)
-
-  if not lattr then
-
-    if default ~= nil then
-      return default
+  if static then
+    values[0.0] = lattr:getNearestSample(0)
+  else
+    for smplindex=0, lattr:getNumberOfTimeSamples() do
+      smplindex = lattr:getSampleTime(smplindex)
+      values[smplindex] = lattr:getNearestSample(smplindex)
     end
-
-    self:logerror(
-      "[get_loc_attr] Attr <", attr_path, "> is nil on source <", location,
-      "> at time=", time
-    )
-
   end
 
-  return lattr, lattr_type
+  out["values"] = values
+
+  return out
 
 end
 
 
-function _M:get_user_attr(time, name, default_value)
+-- PUBLIC -----------------
+
+
+function _M:get_attr_data(location, attr_path, default, static)
+  --[[
+  Get the given attribute on the location.
+  Return it as a lua table describing the DataAttribute structure it had.
+
+  Supports motion-blur if static=false or nil.
+
+  Args:
+    location(str): scene graph location to extract teh attribute from
+    attr_path(str): path of the attribute on the location
+    default(any or error): value to return if attr_path not found
+      you can use the <error> builtin to raise an error instead
+    static(bool or nil): if true only query time sample 0 (no motion blur)
+  Returns:
+    table or nil:
+      table[class] = DataAttribute class not instanced
+      table[tuple] = num, tuple size of the orignal DataAttribute
+      table[values] = table of values with time samples
+      table[length] = number of values in each values' key time-sample
+  ]]
+
+  local out = _get_attr_data(location, attr_path, static)
+
+  if not out then
+
+    if default==error then
+      self:logerror(
+          "[utils][get_attr_value] location <",
+          location,
+          "> doesn't have the attr_path <",
+          attr_path,
+          ">."
+      )
+    else
+      return default
+    end
+
+  end
+
+  return out
+
+end
+
+
+function _M:get_attr_value(location, attr_path, default)
+  --[[
+  Get the given attribute value on the location.
+  Queried attribute is not multi-sampled and only it's value is returned
+  compared to using <get_attr_data()>.
+
+  Args:
+    location(str): scene graph location to extract teh attribute from
+    attr_path(str): path of the attribute on the location
+    default(any or error): value to return if attr_path not found
+      you can use the <error> builtin to raise an error instead
+  Returns:
+    any or nil: type depends of original data queried
+  ]]
+  local out = self:get_attr_data(location, attr_path, default, true)
+  out = out["values"][0.0]
+  return out
+
+end
+
+
+function _M:get_user_attr(name, default_value)
     --[[
     Return an OpScipt user attribute.
     If not found return the default_value. (unless asked to raise an error)
 
     Args:
-        time(int): frame the attribute must be queried at
         name(str): attribute location (don't need the <user.>)
         default_value(any): value to return if user attr not found
-          you can use the special token <$error> to raise an error instead
+          you can use the <error> builtin to raise an error instead
     Returns:
         table or any: table of value on attribute or default value
     ]]
     local argvalue = Interface.GetOpArg(self:conkat("user.",name))
 
     if argvalue then
-      return argvalue:getNearestSample(time)
+      return argvalue:getNearestSample(0)
 
-    elseif default_value=="$error" then
+    elseif default_value==error then
       self:logerror("[get_user_attr] user attribute <",name,"> not found.")
 
     else
       return default_value
 
     end
+
+end
+
+
+-- TODO see if the bottom method need to be deleted
+function _M:slice_attribute(attr, at_index, usearray)
+  --[[
+  From the given DataAttribute return itself but with just the values at the
+  specified tuple index. This means getNumberOfValues==getTupleSize.
+
+  Support multiple time samples.
+  Expensive method, and ~ 75% slower if usearray==true
+
+  Args:
+    attr(DataAttribute): DataAttribute instance
+    at_index(num): starts at 0. Index of the tuple to return
+    usearray(bool or nil): if true use an Array instance instead of a DataAttribute one.
+
+  Returns:
+    DataAttribute: same DataAttribute as attr arg except with only the value asked.
+  ]]
+  local out = {}
+  local buf
+  local array
+  local class = self:get_attribute_class(attr)
+
+  if at_index > attr:getNumberOfTuples() then
+    self:logerror(
+        "[slice_attribute] at_index arg <",
+        at_index,
+        "> specified for attr is not valid: should be inferior to",
+        attr:getNumberOfTuples()
+    )
+  end
+
+  if usearray then
+
+    for _, smpl in ipairs(attr:getSamples()) do
+
+      buf = {}
+      array = smpl:toArray()
+      for i=0, attr:getTupleSize() - 1 do
+        buf[#buf+1] = array:get(at_index + i)
+      end
+
+      out[smpl:getSampleTime()] = buf
+
+    end
+
+  else
+
+    for smplindex=0, attr:getNumberOfTimeSamples() do
+      buf = {}
+      smplindex = attr:getSampleTime(smplindex)
+      array = attr:getNearestSample(smplindex)
+
+      for i=1, attr:getTupleSize() do
+        buf[#buf+1] = array[at_index + i]
+      end
+
+      out[smplindex] = buf
+
+    end
+
+  end
+
+  out = class(out, attr:getTupleSize())
+  return out
 
 end
 

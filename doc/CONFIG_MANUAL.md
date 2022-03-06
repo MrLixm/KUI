@@ -13,6 +13,9 @@ The script is able to support a lot of point-cloud configurations thanks to
 pre-defined attributes that must be created on the source location 
 (the point-cloud) :
 
+- `instancing.data.points` (string array)
+  - `[1*n]` = path to the attribute to use to determine number of points.
+  - `[2*n]` = grouping (tuple size).
 - `instancing.data.sources` (string array) :
   - `[1*n]` = instance source location.
   - `[2*n]` = instance source index.
@@ -49,6 +52,14 @@ So basic maths, use 1 for multiplier and 0 for additive if no modification is ne
 applied on all values, including the axis ones, which will led to weird results.
 
 
+### instancing.data.points
+
+Give an attribute that will be used to determine the number of unique points.
+
+```lua
+point_count = #points_attr / grouping
+```
+
 ### instancing.data.sources
 
 ![attribute set screenshot for instancing.data.sources](./img/config.sources.png)
@@ -69,7 +80,6 @@ List of supported tokens for column `[2]`
 
 ![attribute set screenshot for instancing.data.common](./img/config.common.png)
 ```
-$points
 $index
 $skip
 $hide
@@ -81,20 +91,6 @@ $rotationX
 $rotationY
 $rotationZ
 ```
-
-#### points
-
- ![mandatory](https://img.shields.io/badge/mandatory-f03e3e)
-
-Only used to determine the number of individuals points using :
-```python
-length(points.values) / points.grouping * points.multiplier + points.additive
-```
-
-This mean you could use any attribute to determine how many points there is (but usually it is `geometry.point.P`)
-
-As we saw above, in this case the multiplier increase the number of points (to use in case of `$points` differs with the length of other tokens).
-
 
 #### index
 
@@ -242,6 +238,13 @@ The rotations values are excepted to be degree. Use
 ``instancing.settings.convert_degree_to_radian=-1`` if that's not the case.
 
 ⚠ This feature requires Katana 4.0 + (`Imath` module missing before)
+
+#### instancing.settings.enable_motion_blur
+
+- (optional)(int) : 
+  - `0` to disable motion-blur support.  
+  - `1` to enable motion blur support (reading multiple time samples on attributes)
+  
 
 ## 3. User Arguments
 

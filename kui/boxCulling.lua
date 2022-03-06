@@ -108,15 +108,13 @@ local function run()
   local time = Interface.GetCurrentTime()
 
   local u_pointcloud_sg = utils:get_user_attr(
-    time,
     "pointcloud_sg",
-    "$error"
+    error
   )[1]  -- type: str
   -- culling_locations(table): {"CEL","CEL",...}
   local culling_locations = utils:get_user_attr(
-    time,
     "culling_locations",
-    "$error"
+    error
   )
 
   -- process the source pointcloud
