@@ -447,6 +447,7 @@ end
 local function SourcesAttribute(parent, source_path)
   --[[
   List of instances sources locations with their associated index.
+  Require the index token to be build on the PointCloudData parent
 
   beware of the 3 getter method returned values :
     - get_instance_source_data_at() :
@@ -459,7 +460,32 @@ local function SourcesAttribute(parent, source_path)
   Note: Don't use <pid> with <__value_get()> as the values are not per-point.
   ]]
 
-  local inner = BaseAttribute:new(parent, source_path, true)
+  local inner = CommonAttribute:new(parent, source_path, true)
+
+  function inner:get_source_at(index)
+    --[[
+    Return the instance source corresponding to the given index
+    Args:
+      index(number or string):
+    Returns:
+      string or nil: nil if not found
+    ]]
+    index = tostring(index)
+
+    local sources = self:__value_get(nil, true)  -- table of time samples
+    sources = sources[0.0]  -- motion blur is disabled for this attribute
+
+    for i=0, self.length / self.tupleSize - 1 do
+
+      if index == sources[i*self.tupleSize + 2] then
+        return sources[i*self.tupleSize + 1]
+      end
+
+    end
+
+    return nil
+
+  end
 
   function inner:get_instance_source_data_at(pid)
     --[[
@@ -468,12 +494,12 @@ local function SourcesAttribute(parent, source_path)
       table: {"instance source location", "index", [...]}
     ]]
 
-    local sources = self:__value_get(nil, true)  -- table of time samples
-    sources = sources[0.0]  -- motion blur is disabled for this one
+    local sourcesd = self:__value_get(nil, true)  -- table of time samples
+    sourcesd = sourcesd[0.0]  -- motion blur is disabled for this attribute
 
     -- return a list of instance sources locations with indexes
     if not pid then
-      return sources
+      return sourcesd
     end
 
     -- else if pid return the instance source + index for the given point
@@ -481,17 +507,14 @@ local function SourcesAttribute(parent, source_path)
     local index = self.parent:get_common_by_name("index"):get_value_at(pid)
     index = index[1] -- string
 
-    for i=0, self.length / self.tupleSize - 1 do
-
-      if index == sources[i*self.tupleSize + 2] then
-        return {sources[i*self.tupleSize + 1], sources[i*self.tupleSize + 2]}
-      end
-
+    local source = self:get_source_at(index)
+    if source then
+      return {source, index}
     end
 
     -- if the function didn't return yet mean we didn't find an instance source
     utils:logerror("[SourcesAttribute][get_instance_source_data_at] Can't \z
-    find an instance source for pid<", pid, "> from data=", sources)
+    find an instance source for pid<", pid, "> from data=", sourcesd)
 
   end
 
