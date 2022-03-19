@@ -230,12 +230,15 @@ happens **after** the initial values have been _multiplied/offseted_.
   - `0` to disable any conversion.  
   - `1` to convert trs attributes to a 4x4 matrix
 
-If enabled, the ``translation``, ``rotationX/Y/Z`` and ``scale`` attributes 
-are converted to a 4x4 identity matrix (the ``matrix`` attribute.). Make sure 
+If enabled, the `translation`, `rotationX/Y/Z` and `scale` attributes 
+are converted to a 4x4 identity matrix (the `matrix` attribute.). Make sure 
 at least one of the TRS attribute is specified. 
 
 The rotations values are excepted to be degree. Use 
-``instancing.settings.convert_degree_to_radian=-1`` if that's not the case.
+`instancing.settings.convert_degree_to_radian=-1` if that's not the case.
+
+For motion-blur, the list of time samples are computed from the `translation`
+AND `rotationX` AND `scale` token.
 
 ⚠ This feature requires Katana 4.0 + (`Imath` module missing before)
 

@@ -46,6 +46,8 @@ local tostring = tostring
 local select = select
 local tableconcat = table.concat
 local mathpi = math.pi
+local mathabs = math.abs
+local type = type
 
 function _M:conkat(...)
   --[[
@@ -360,6 +362,59 @@ function _M.get_katana_version()
   version = version:gsub("%.", "", 2)
   version = tonumber(version)
   return version
+
+end
+
+
+function _M:get_nearest_from_samples(samples, nearest)
+  --[[
+  Source: https://stackoverflow.com/a/5464961/13806195
+
+  Args:
+    samples(table): tables of samples like {-0.25:..., 0.0: ..., ...}
+    nearest(number): time samples as float to return the closest sample from
+
+  Returns:
+    number: sample in <samples> closest to given <nearest>
+  ]]
+
+  local smallestSoFar
+
+  for sample, _ in pairs(samples) do
+
+      if not smallestSoFar or
+      (mathabs(nearest - smallestSoFar) > mathabs(sample - nearest)) then
+          smallestSoFar = sample
+      end
+
+  end
+
+  return smallestSoFar
+
+end
+
+function _M:get_samples_list_from(...)
+  --[[
+  Args:
+    ...(table(s) or nil): multiple tables of time samples
+
+  Returns:
+    table: unordered table of time samples
+  ]]
+
+  local samples_list = {}
+  local t
+
+  for i=1, select("#",...) do
+    t = select(i,...)
+    if t and type(t)=="table" then
+      for smpl, _ in pairs(t) do
+        samples_list[smpl] = true
+      end
+    end
+  end
+
+  return samples_list
 
 end
 

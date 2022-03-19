@@ -29,6 +29,7 @@ logger.formatting:set_tbl_display_functions(false)
 -- we make some global functions local as this will improve performances in
 -- heavy loops. Note: this is not that useful for PointCloudData
 local tostring = tostring
+local mathfloor = math.floor
 
 
 local function set_logger_level(self, level)
@@ -171,7 +172,30 @@ function BaseAttribute:new(parent, source_path, is_static)
     Args:
       size(number):
     ]]
+
+    -- check the given size is plausible
+    if self.length then
+      local d = self.length / size
+      if mathfloor(d) ~= d then
+        utils:logerror("[BaseAttribute][",self.path,"][set_tuple_size] Given \z
+        size <", size, "> is not valid. (", self.length, "/size ~=int)")
+      end
+    end
+
     self.tupleSize = tonumber(size)
+
+  end
+
+  function attrs:set_values(values)
+    --[[
+    Args:
+      values(table): unordered tables of time samples of values
+    ]]
+    self.values = values
+    for _, v in pairs(values) do
+      self.length = #v
+      break -- we only need to do that on the first sample found
+    end
   end
 
   function attrs:set_data_class(data_class)
@@ -182,7 +206,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     self.class = data_class
   end
 
-  function attrs:__value_get(pid, raw)
+  function attrs:__value_get(pid, raw, nearest_sample)
     --[[
     Return the values for this attribute.
     It can be a slice for the given pid, or the entire range of values.
@@ -201,10 +225,14 @@ function BaseAttribute:new(parent, source_path, is_static)
         If true return the values as their corresponding DataAttribute instance.
         false by default (if nil)
 
+      nearest_sample(number or nil): instead of returning a table of samples,
+        return just the time sample values closest to this.
+
     Returns:
-      DataAttribute or table or nil:
-        If a table is returned there is always at least the key <0.0>
-        DataAttribute instance or nil if <attr_name> is empty (=false).
+      DataAttribute: if <raw>=false
+      table: of time samples with at least 0.0 if not <nearest_sample>
+      table: of values if <nearest_sample>
+      nil: if <attr_name> is empty (=false).
     ]]
 
     local buf
@@ -222,9 +250,14 @@ function BaseAttribute:new(parent, source_path, is_static)
         smplbuf[0.0] = self.values[0.0]
       end
 
+      if nearest_sample then
+        smplbuf = utils:get_nearest_from_samples(smplbuf, nearest_sample)
+      end
+
     -- else return a slice of the table
     else
 
+      -- first check if we need to process multiple time samples
       -- we can't filter the time samples AFTER as we would loss the performance
       -- improvement. So yeah a bit of duplicated code.
       if self.static == true then
@@ -235,25 +268,51 @@ function BaseAttribute:new(parent, source_path, is_static)
           buf[#buf + 1] = self.values[0.0][self.tupleSize * pid + grpi]
         end
 
-       smplbuf[0.0] = buf
+        if nearest_sample then
+          smplbuf = buf
+        else
+          smplbuf[0.0] = buf
+        end
 
+      -- process time sample(s) for the given pid
       else
-        -- process all time samples :
-        smplbuf = {}
-        for smpl, processedvalue in pairs(self.values) do
 
-          buf = {}
-          -- grouping usually vary between 1 and 16(matrices), so small loop.
+
+        -- process only sample nearest to given one
+        if nearest_sample then
+
+          local closest_smpl
+          closest_smpl = utils:get_nearest_from_samples(self.values, nearest_sample)
+
+          smplbuf = {}
+
+          buf = self.values[closest_smpl]
           for grpi=1, self.tupleSize do
-            buf[#buf + 1] = processedvalue[self.tupleSize * pid + grpi]
+            smplbuf[#smplbuf + 1] = buf[self.tupleSize * pid + grpi]
           end
 
-          smplbuf[smpl] = buf
+        -- process all time samples :
+        else
+
+          smplbuf = {}
+
+          for smpl, processedvalue in pairs(self.values) do
+
+            buf = {}
+            -- grouping usually vary between 1 and 16(matrices), so small loop.
+            for grpi=1, self.tupleSize do
+              buf[#buf + 1] = processedvalue[self.tupleSize * pid + grpi]
+            end
+
+            smplbuf[smpl] = buf
+
+          end
 
         end
-      -- end if static
+
+        -- end if static
       end
-    -- end if pid
+      -- end if pid
     end
 
     if raw==true then
@@ -265,19 +324,34 @@ function BaseAttribute:new(parent, source_path, is_static)
 
   end
 
-  function attrs:get_value_at(pid)
+  function attrs:get_value_at(pid, nearest_sample)
     --[[
     Returns a table of value at the given optional point index.
-    Time sample 0.0 is at least present.
+    Time sample 0.0 is at least present or the time sample nearest to the given
+    <nearest_sample> is returned.
+
+    Returns:
+      table: of time samples with at least 0.0 if not <nearest_sample>
+      table: of values if <nearest_sample>
+      nil: if <attr_name> is empty (=false).
+
     ]]
-    return self:__value_get(pid, true)
+    return self:__value_get(pid, true, nearest_sample)
   end
 
-  function attrs:get_data_at(pid)
+  function attrs:get_data_at(pid, nearest_sample)
     --[[
     Returns a DataAttribute instance at the given optional point index
+    Time sample 0.0 is at least present or the time sample nearest to the given
+    <nearest_sample> is returned.
+
+    Returns:
+      DataAttribute: of time samples with at least 0.0 if not <nearest_sample>
+      DataAttribute: of values if <nearest_sample>
+      nil: if <attr_name> is empty (=false).
+
     ]]
-    return self:__value_get(pid, false)
+    return self:__value_get(pid, false, nearest_sample)
   end
 
   return attrs
@@ -308,6 +382,8 @@ local function ArbitraryAttribute(parent, source_path, is_static)
         a_string
     )
     a_string = a_string()  -- this should be a table
+
+    -- process attributes that are meant to be used internally :
 
     if a_string.multi_sampled then
       self.static = false
@@ -457,14 +533,15 @@ local PointCloudData = {}
 function PointCloudData:new(location)
 
   local attrs = {
-  ["__attrdata"]=false,
-  ["location"]=location,
-  ["common"]={},
-  ["arbitrary"]={},
-  ["points"]=false,
-  ["settings"] = {}
-}
+    ["__attrdata"]=false,
+    ["location"]=location,
+    ["common"]={},
+    ["arbitrary"]={},
+    ["points"]=false,
+    ["settings"] = {}
+  }
 
+  -- TODO see if need for remove
   -- build the common key with all the supported tokens
   for token_name, _ in pairs(Tokens.list) do
     attrs.common[token_name] = false
@@ -593,11 +670,11 @@ function PointCloudData:new(location)
 
   function attrs:_build_arbitrary()
       --[[
-    Build the <common> attribute.
+    Build the <arbitrary> attribute.
     ]]
     local idata
 
-    local token
+    local target
     local path
     local tuplesize
     local additional
@@ -617,7 +694,7 @@ function PointCloudData:new(location)
     for i=0, #idata / AttrGrp.arbitrary - 1 do
 
       path = idata[AttrGrp.arbitrary*i+1]
-      token = Tokens:check_token(idata[AttrGrp.arbitrary*i+2]) -- return without the "$" !
+      target = idata[AttrGrp.arbitrary*i+2]
       tuplesize = idata[AttrGrp.arbitrary*i+3]
       if tuplesize == "" then
         tuplesize = -1
@@ -634,22 +711,125 @@ function PointCloudData:new(location)
       )
       -- to execute before build() (set static)!
       attribute:set_additional_from_string(additional)
+
       attribute:build()
+
       -- -1 mean the tupleSize was not specified so let the one found by build
       if tuplesize ~= -1 then
         attribute:set_tuple_size(tuplesize)
       end
 
-      -- force some tokens with a pre-defined DataAttribute type.
-      if Tokens.list[token].force_type then
-        attribute:set_data_class(Tokens.list[token].force_type)
-      end
-
-      self["common"][token] = attribute
+      self["arbitrary"][target] = attribute
 
     end
 
     -- end _build_common
+  end
+
+  function attrs:_convert_trs_to_matrix()
+    --[[
+    Convert the translation, rotationX/Y/Z, and scale attributes to the matrix
+    attribute (4x4 matrix).
+    ]]
+
+    if self.settings.convert_trs_to_matrix == 0 then
+      logger:debug(
+        "[PointCloudData][_convert_to_matrix] Aborted. Setting not enable."
+      )
+      return
+    end
+
+    -- TODO check and remove this
+    if utils.get_katana_version() < 400 then
+      logger:error(
+        "[PointCloudData][_convert_to_matrix] Aborted. Current Katana version <",
+        utils.get_katana_version(),
+        "> is not supported by this method. Require Katana 4.0+"
+      )
+      return
+    end
+
+    local v
+    local matrices_smpls = {}
+    local matrices
+    local m44
+    local im44d = Imath.M44d
+    local iv3d = Imath.V3d
+
+    -- compute a list of samples base on <translation> or <rotationX> or <scale>
+    -- we are sure to not miss samples
+    local samples_list = utils:get_samples_list_from(
+        self:get_common_by_name("translation"):get_value_at(),
+        self:get_common_by_name("rotationX"):get_value_at(),
+        self:get_common_by_name("scale"):get_value_at()
+    )  -- type: table: {-0.25=true, 0.0=true, ...}
+
+    -- build a new 4x4 matrix for each point
+    for i=0, self.points.count - 1 do
+
+      -- create samples based on the ones found above
+      for sample, _ in pairs(samples_list) do
+
+        matrices = {}
+
+        -- translation
+        m44 = im44d()
+        v = self:get_common_by_name("translation"):get_value_at(i, sample)
+        if v then
+          m44:translate(iv3d(v))
+        end
+
+        -- rotations
+        v = self:get_common_by_name("rotationX"):get_value_at(i, sample)
+        if v then
+          v = {utils.degree_to_radian(v[1])}
+          v[2] = utils.degree_to_radian(
+              self:get_common_by_name("rotationY"):get_value_at(i, sample)[1]
+          )
+          v[3] = utils.degree_to_radian(
+              self:get_common_by_name("rotationZ"):get_value_at(i, sample)[1]
+          )
+          m44:rotate(iv3d(v))
+        end
+
+        -- scale
+        v = self:get_common_by_name("scale"):get_value_at(i, sample)
+        if v then
+          m44:scale(iv3d(v))
+        end
+
+        -- combine the created matrix to the matrices table
+        for _, mv in ipairs(m44:toTable()) do
+          matrices[#matrices + 1] = mv
+        end
+
+        matrices_smpls[sample] = matrices
+
+      end
+
+    end
+
+    self.common.matrix = CommonAttribute(
+        self,
+        "function _convert_trs_to_matrix()",
+        false
+    )
+    self.common.matrix:set_tuple_size(16)
+    self.common.matrix:set_data_class(DoubleAttribute)
+    self.common.matrix:set_values(matrices_smpls)
+
+    self.common.translation = false
+    self.common.rotation = false
+    self.common.rotationX = false
+    self.common.rotationY = false
+    self.common.rotationZ = false
+    self.common.scale = false
+
+    logger:debug(
+        "[PointCloudData][_convert_trs_to_matrix] Finished. New matrix \z
+        attribute of length=", #matrices, "created."
+    )
+
   end
 
   function attrs:_validate()
@@ -680,8 +860,7 @@ function PointCloudData:new(location)
     end
 
     -- instance sources index must start at 0
-    -- TODO update get_index once finished
-    if self.common.sources:get_index("0") == nil then
+    if self.common.sources:get_source_at("0") == nil then
       utils:logerror(
         "[PointCloudData][_validate] No index 0 found on <common.sources> attribute."
       )
@@ -689,18 +868,18 @@ function PointCloudData:new(location)
 
     -- every instance source need the index to be declared
     -- TODO update once SourcesAttribute finished
-    for _, isource_data in ipairs(self.sources) do
-      if not isource_data["index"] then
-        utils:logerror(
-            "[PointCloudData][_validate] No index specified for \z
-            instance source <",
-            self.isource_data["path"],
-            "> for source location <",
-            self.location,
-            ">."
-        )
-      end
-    end
+    --for _, isource_data in ipairs(self.sources) do
+    --  if not isource_data["index"] then
+    --    utils:logerror(
+    --        "[PointCloudData][_validate] No index specified for \z
+    --        instance source <",
+    --        self.isource_data["path"],
+    --        "> for source location <",
+    --        self.location,
+    --        ">."
+    --    )
+    --  end
+    --end
 
     -- it's best to only specify one if needed, warn user
     if self.common.hide and self.common.skip then
@@ -775,7 +954,7 @@ function PointCloudData:new(location)
 
     -- verify grouping values
     if self.common.rotation then
-      if self.common.rotation.grouping ~= 3 then
+      if self.common.rotation.tupleSize ~= 3 then
         utils:logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $rotation token only accepts 3 as grouping, not ",
@@ -784,7 +963,7 @@ function PointCloudData:new(location)
       end
     end
     if self.common.matrix then
-      if self.common.matrix.grouping ~= 16 then
+      if self.common.matrix.tupleSize ~= 16 then
         utils:logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $matrix token only accepts 16 as grouping, not ",
@@ -793,36 +972,13 @@ function PointCloudData:new(location)
       end
     end
     if self.common.translation then
-      if self.common.translation.grouping ~= 3 then
+      if self.common.translation.tupleSize ~= 3 then
         utils:logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $translation token only accepts 3 as grouping, not ",
           self.common.translation.grouping
         )
       end
-    end
-
-    -- check per-point tokens have the good "shape"
-    -- TODO update this
-    local attrlength
-    for attrname, attrdata in pairs(self.common) do
-      -- attrdata can be <false> if not built so skip if so, I wish lua has a
-      -- "continue" keyword like in python !
-      -- also skip if the token is skip (doesn't have per-point value)
-      if attrdata and attrname ~= "skip" then
-        --we check first that the <grouping> and <points> attribute seems valid
-        attrlength = #(attrdata.values) / attrdata.grouping
-        if attrlength ~= self.point_count then
-          utils:logerror(
-          "[PointCloudData][_validate] Common attribute <", attrname,
-          "> as an odd number of values : ", tostring(#(attrdata.values)),
-          " / ", tostring(attrdata.grouping), " = ", attrlength,
-          " while point_count=", self.point_count
-          )
-        end
-        -- end if attrdata is not false/nil
-      end
-      -- end for attrname, attrdata
     end
 
     -- end for _validate()
@@ -843,18 +999,25 @@ function PointCloudData:new(location)
   end
 
   function attrs:get_common_by_name(name)
+    --[[
+    Returns:
+      BaseAttribute or nil: nil if not found
+    ]]
+    return self.common[name]
   end
 
   function attrs:get_commons()
+    return self.common
   end
 
   function attrs:get_arbitrary()
+    return self.arbitrary
   end
 
   logger:debug(
       "[PointCloudData][new] Finished for location <",
       location,
-      ">"
+      ">."
   )
 
   return attrs
