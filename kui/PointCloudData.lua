@@ -749,6 +749,195 @@ function PointCloudData:new(location)
     -- end _build_common
   end
 
+  function attrs:_convert_degree_radian()
+    --[[
+    Convert degree to radian or inverse or do nothing ,depending of user
+    specified setting.
+
+    To execute after self:_build_processed_key, the <processed> key have to be build.
+    ]]
+    local convert_func
+    if self.settings.convert_degree_to_radian == 1 then
+      convert_func = utils.degree_to_radian
+    elseif self.settings.convert_degree_to_radian == -1 then
+      convert_func = utils.radian_to_degree
+    else
+      logger:debug(
+        "[PointCloudData][_convert_degree_radian] Aborted early with convert=",
+        self.settings.convert_degree_to_radian
+      )
+      return
+    end
+
+    local sv
+
+    -- convert the rotationX/Y/Z tokens
+    for _, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
+
+      sv = self.common[token]:get_value_at()
+
+      for sample, values in pairs(sv) do
+        for i=0, #values / self.common[token].tupleSize - 1 do
+          -- make sure the axis are not processed !
+          sv[i * self.common[token].tupleSize + 1] = convert_func(
+              sv[i * self.common[token].tupleSize + 1]
+          )
+        end
+      end
+
+    end
+
+    -- convert the rotation token
+    sv = self.common.rotation:get_value_at()
+    for _, values in pairs(sv) do
+
+      for i, v in ipairs(values) do
+        v[i] = convert_func(v)
+      end
+
+    end
+
+    logger:debug(
+      "[PointCloudData][_convert_degree_radian] Finished with convert=",
+      self.settings.convert_degree_to_radian
+    )
+
+  end
+
+  function attrs:_convert_rotation_to_axis()
+    --[[
+    As rotationX/Y/Z should always exists, use the <rotation> one to build them
+
+    Execute after self:_validate
+    ! heavy ! Process through all the rotation points
+    ]]
+
+    -- check of course if the attribute is built before starting anything
+    if not self.common.rotation then
+      return
+    end
+
+    local rx = {}
+    local ry = {}
+    local rz = {}
+
+    local rall_data = {
+      { rx, {1.0, 0.0, 0.0} }, -- x
+      { ry, {0.0, 1.0, 0.0} }, -- y
+      { rz, {0.0, 0.0, 1.0} }  -- z
+    }
+    local rvalues local raxis local rbuffer
+
+    -- /!\ Perfs
+    -- iterate trough all rotation values with are assumed to be in x,y,z order
+    -- grouping can only be 3
+
+    -- iterate trough each axis x,y,z
+    for rindex, rdata in ipairs(rall_data) do
+
+      rvalues, raxis = rdata[1], rdata[2]
+
+      for sample, source_values in pairs(self.common.rotation:get_value_at()) do
+
+        rbuffer = {}
+
+        for i=0, self.common.rotation.length / self.common.rotation.tupleSize - 1 do
+
+          -- rindex=[1,2,3] ; rdata=[{ {}, {1.0, 0.0, 0.0} }, ...]
+
+          rbuffer[#rbuffer + 1] = source_values[i*self.common.rotation.tupleSize + rindex]
+          rbuffer[#rbuffer + 1] = raxis[1]
+          rbuffer[#rbuffer + 1] = raxis[2]
+          rbuffer[#rbuffer + 1] = raxis[3]
+
+        end
+
+        rvalues[sample] = rbuffer
+
+      end
+
+
+    end
+
+    for i, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
+
+      self["common"][token] = CommonAttribute(
+        self,
+        "function _convert_rotation_to_axis",
+        false
+      )
+      self["common"][token]:set_tuple_size(4)
+      self["common"][token]:set_data_class(self.common.rotation.class)
+      self["common"][token]:set_values(rall_data[i][1])
+
+    end
+
+    logger:debug("[PointCloudData][_convert_rotation_to_axis] Finished.")
+
+  end
+
+  function attrs:_convert_skip_n_hide()
+    --[[
+    Both token should always be defined or none of them. So if <hide> is
+    specified, convert it to <skip>. If only <skip> is specified convert it
+    to <hide>.
+
+    So the <hide> token take over the <skip> token if both specified !
+
+    Motion blur is disabled here.
+
+    Execute after the <self:_validate> method.
+    ]]
+
+    local pcvalues = {}
+
+    if self.common.hide then
+
+      for i, hidden in ipairs(self.common.hide:get_value_at(nil, 0.0)) do
+        if hidden == 1 then
+          pcvalues[#pcvalues + 1] = i
+        end
+      end
+      pcvalues = {[0.0]=pcvalues}
+
+      self["common"]["skip"] = CommonAttribute(
+        self,
+        "function _convert_skip_n_hide",
+        true
+      )
+      self["common"]["skip"]:set_tuple_size(1)
+      self["common"]["skip"]:set_data_class(IntAttribute)
+      self["common"]["skip"]:set_values(pcvalues)
+
+    elseif self.common.skip then
+
+      -- build a first time the hide table, all points are visible
+      for i=1, self.points.count do
+        pcvalues[i] = 0
+      end
+      -- iterate through point to skip and set them on <pcvalues>
+      -- !! self.common.skip.values starts at 0 !! hence the + 1
+      for _, to_hide in ipairs(self.common.skip:get_value_at(nil, 0.0)) do
+        pcvalues[to_hide + 1] = 1
+      end
+
+      pcvalues = {[0.0]=pcvalues}
+
+      self["common"]["hide"] = CommonAttribute(
+        self,
+        "function _convert_skip_n_hide",
+        true
+      )
+      self["common"]["hide"]:set_tuple_size(1)
+      self["common"]["hide"]:set_data_class(IntAttribute)
+      self["common"]["hide"]:set_values(pcvalues)
+
+    end
+
+    logger:debug("[PointCloudData][_convert_skip_n_hide] Finished.")
+
+  end
+
   function attrs:_convert_trs_to_matrix()
     --[[
     Convert the translation, rotationX/Y/Z, and scale attributes to the matrix
