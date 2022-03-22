@@ -1,5 +1,5 @@
 --[[
-version=5
+version=6
 
 [LICENSE]
 
@@ -193,7 +193,7 @@ function _M:get_attr_data(location, attr_path, default, static)
 
     if default==error then
       self:logerror(
-          "[utils][get_attr_value] location <",
+          "[utils][get_attr_data] location <",
           location,
           "> doesn't have the attr_path <",
           attr_path,
@@ -224,7 +224,24 @@ function _M:get_attr_value(location, attr_path, default)
   Returns:
     any or nil: type depends of original data queried
   ]]
-  local out = self:get_attr_data(location, attr_path, default, true)
+  local out = _get_attr_data(location, attr_path, true)
+
+  if not out then
+
+    if default==error then
+      self:logerror(
+          "[utils][get_attr_data] location <",
+          location,
+          "> doesn't have the attr_path <",
+          attr_path,
+          ">."
+      )
+    else
+      return default
+    end
+
+  end
+
   out = out["values"][0.0]
   return out
 

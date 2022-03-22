@@ -1,5 +1,5 @@
 --[[
-version=9
+version=11
 
 [LICENSE]
 
@@ -148,8 +148,8 @@ function BaseAttribute:new(parent, source_path, is_static)
 
     self.class = self.class or data.class
     self.tupleSize = self.tupleSize or data.tuple
-    self.length =  self.length
-    self.values = self.values
+    self.length =  data.length
+    self.values = data.values
 
   end
 
@@ -251,7 +251,7 @@ function BaseAttribute:new(parent, source_path, is_static)
       end
 
       if nearest_sample then
-        smplbuf = utils:get_nearest_from_samples(smplbuf, nearest_sample)
+        smplbuf = smplbuf[utils:get_nearest_from_samples(smplbuf, nearest_sample)]
       end
 
     -- else return a slice of the table
@@ -370,7 +370,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
       a_string(string): string representing a valid Lua table.
     ]]
 
-    if not a_string then
+    if not a_string or a_string=="" then
       return
     end
 
@@ -382,6 +382,9 @@ local function ArbitraryAttribute(parent, source_path, is_static)
         a_string
     )
     a_string = a_string()  -- this should be a table
+    if not a_string then
+      return
+    end
 
     -- process attributes that are meant to be used internally :
 
@@ -460,7 +463,7 @@ local function SourcesAttribute(parent, source_path)
   Note: Don't use <pid> with <__value_get()> as the values are not per-point.
   ]]
 
-  local inner = CommonAttribute:new(parent, source_path, true)
+  local inner = CommonAttribute(parent, source_path, true)
 
   function inner:get_source_at(index)
     --[[
@@ -472,8 +475,7 @@ local function SourcesAttribute(parent, source_path)
     ]]
     index = tostring(index)
 
-    local sources = self:__value_get(nil, true)  -- table of time samples
-    sources = sources[0.0]  -- motion blur is disabled for this attribute
+    local sources = self:__value_get(nil, true, 0.0)  -- table of values
 
     for i=0, self.length / self.tupleSize - 1 do
 
@@ -494,12 +496,12 @@ local function SourcesAttribute(parent, source_path)
       table: {"instance source location", "index", [...]}
     ]]
 
-    local sourcesd = self:__value_get(nil, true)  -- table of time samples
-    sourcesd = sourcesd[0.0]  -- motion blur is disabled for this attribute
+    local sourcesd = self:__value_get(nil, true, 0.0)  -- table of values
 
     -- return a list of instance sources locations with indexes
     if not pid then
       return sourcesd
+      -- TODO this doesnt return source + index ??
     end
 
     -- else if pid return the instance source + index for the given point
@@ -601,23 +603,28 @@ function PointCloudData:new(location)
   end
 
   function attrs:_build_points()
-  --[[
-  Set the self.points.count attribute based on the point token submitted.
-  ]]
+    --[[
+    Set the self.points.count attribute based on the point token submitted.
+    ]]
 
-  local data_points = utils:get_attr_value(
-    self.location,
-    "instancing.data.points",
-    error
-  ) -- table of 2 values, first is attribute location, second is tupleSize
+    local data_points = utils:get_attr_value(
+      self.location,
+      "instancing.data.points",
+      error
+    ) -- table of 2 values, first is attribute location, second is tupleSize
 
-  local points = utils:get_attr_value(
-    self.location,
-    data_points[1],
-    error
-  )
+    local points = utils:get_attr_value(
+      self.location,
+      data_points[1],
+      error
+    )
 
-  self.points.count = #points / data_points[2]
+    self.points = {}
+    self.points.count = #points / data_points[2]
+
+    logger:debug(
+      "[PointCloudData][_build_points] Finished, found", self.points.count, "points."
+    )
 
   end
 
@@ -976,13 +983,13 @@ function PointCloudData:new(location)
         self:get_common_by_name("scale"):get_value_at()
     )  -- type: table: {-0.25=true, 0.0=true, ...}
 
-    -- build a new 4x4 matrix for each point
-    for i=0, self.points.count - 1 do
+    -- create samples based on the ones found above
+    for sample, _ in pairs(samples_list) do
 
-      -- create samples based on the ones found above
-      for sample, _ in pairs(samples_list) do
+      -- build a new 4x4 matrix for each point
+      matrices = {}
 
-        matrices = {}
+      for i=0, self.points.count - 1 do
 
         -- translation
         m44 = im44d()
@@ -1015,9 +1022,9 @@ function PointCloudData:new(location)
           matrices[#matrices + 1] = mv
         end
 
-        matrices_smpls[sample] = matrices
-
       end
+
+      matrices_smpls[sample] = matrices
 
     end
 
@@ -1039,7 +1046,7 @@ function PointCloudData:new(location)
 
     logger:debug(
         "[PointCloudData][_convert_trs_to_matrix] Finished. New matrix \z
-        attribute of length=", #matrices, "created."
+        attribute of length=", self.common.matrix.length, "created."
     )
 
   end
@@ -1051,6 +1058,8 @@ function PointCloudData:new(location)
     Also clean the unusable attributes.
     TODO see if arbitrary is also needed to be validated
     ]]
+
+    logger:debug("[PointCloudData][_validate] Started.")
 
     -- attr points must always exists
     if not self.points.count then
@@ -1193,6 +1202,8 @@ function PointCloudData:new(location)
       end
     end
 
+    logger:debug("[PointCloudData][_validate] Finished.")
+
     -- end for _validate()
   end
 
@@ -1208,7 +1219,39 @@ function PointCloudData:new(location)
     -- check that the data queried above is valid
     self:_validate()
 
+    self:_convert_rotation_to_axis()
+    self:_convert_skip_n_hide()
+    self:_convert_degree_radian()
+    self:_convert_trs_to_matrix()
+
   end
+
+  function attrs:is_point_hidden(pid)
+  --[[
+  Return false is the point at given index must not be created (hidden).
+  This is determined by using the <hide> token.
+
+  /!\ perfs
+
+  Args:
+    pid(int): point index: which point to use. !! starts at 0 !!
+
+  Returns:
+    bool: true if the point is hidden and thus should not be created
+  ]]
+
+  local data = self:get_common_by_name("hide"):get_value_at(pid, 0.0) -- table of 0/1
+  if not data then
+    return false
+  end
+
+  if data[1] == 1 then
+    return true
+  end
+
+  return false
+
+end
 
   function attrs:get_common_by_name(name)
     --[[
