@@ -1,5 +1,5 @@
 --[[
-version=0.0.19
+version=20
 
 [LICENSE]
 
@@ -145,33 +145,46 @@ function InstanceHierarchical:new(name, id)
 
     -- 1. PROCESS INSTANCE SOURCE SETUP
     -- had to be first for childAttrs to not override previously set
-    local isrc_data = point_data:get_instance_source_data(self.id)
+    local src_attr = point_data:get_common_by_name("sources")
+    src_attr:get_instance_source_data_at(self.id)
     -- must really be first
-    self.gb:set("childAttrs", isrc_data["attrs"])
-    self:set_instance_source(
-        isrc_data["path"],
-        isrc_data["index"]
+    self.gb:set(
+        "childAttrs",
+        Interface.GetAttr("", src_attr[1])
     )
+    self:set_instance_source(
+        src_attr[1],
+        src_attr[2]
+    )
+
+    local buf
 
     -- 2. PROCESS COMMON ATTRIBUTES
     for _, tt in ipairs(token_target) do
-      -- add() handle nil value by himself
-      self:add(tt["target"], point_data:get_attr_value(tt["token"], self.id))
+      buf = self.pdata:get_common_by_name(tt["token"])
+      if buf then
+        -- add() handle nil value by himself
+        self:add(
+          tt["target"],
+          buf:get_data_at(self.id)
+        )
+      end
     end
 
     -- 3. PROCESS ARBITRARY ATTRIBUTES
-    for target, arbtr_data in pairs(point_data["arbitrary"]) do
+    for target, attr in pairs(point_data:get_arbitrary()) do
       -- 1. first process the additional table
       -- we only use arbtr_data for the <additional> key yet so we can do this
-      arbtr_data = arbtr_data["additional"]  -- type: table or NIL
-      if arbtr_data then
-        for addit_target, addit_value in pairs(arbtr_data) do
+      buf = attr.additional  -- type: table or NIL
+      if buf then
+        for addit_target, addit_value in pairs(buf) do
           self:add(addit_target, addit_value)
         end
       end
       -- 2. Add the arbitrary attribute value
       -- add() handle nil value by himself
-      self:add(target,  point_data:get_attr_value(target, self.id))
+      self:add(target,  attr:get_data_at(self.id))
+
     end
 
     -- end function

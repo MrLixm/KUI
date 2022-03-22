@@ -1,5 +1,5 @@
 """
-version=4
+version=7
 Python 2+
 
 This snippet is used on KUI Setup node ScriptButtons parameters.
@@ -12,13 +12,11 @@ from Katana import (
     Utils,
 )
 
-FRAME = NodegraphAPI.GetCurrentTime()
-
 
 def get_data(sourcenode, path):
 
     teleparam = sourcenode.getParameter(path)
-    teleparam_value = teleparam.getValue(FRAME)  # "nodeName.paramName"
+    teleparam_value = teleparam.getValue(0)  # "nodeName.paramName"
 
     asnode, asparam = teleparam_value.split(".", 1)
     asnode = NodegraphAPI.GetNode(asnode)
@@ -99,25 +97,21 @@ def run():
         param.resizeArray(array_size + tuple_size)
 
         if context == "sources":
-            param.getChildByIndex(array_size + 0).setValue("SOURCE LOCATION", FRAME)
-            param.getChildByIndex(array_size + 1).setValue("SOURCE INDEX", FRAME)
+            param.getChildByIndex(array_size + 0).setValue("SOURCE LOCATION", 0)
+            param.getChildByIndex(array_size + 1).setValue("SOURCE INDEX", 0)
 
         elif context == "common":
             tokenparam = node.getParameter("user.common.token2add")
-            tokenparam_value = tokenparam.getValue(FRAME)  # type: str
-            param.getChildByIndex(array_size + 0).setValue("ATTRIBUTE", FRAME)
-            param.getChildByIndex(array_size + 1).setValue(tokenparam_value, FRAME)
-            param.getChildByIndex(array_size + 2).setValue("GROUPING", FRAME)
-            param.getChildByIndex(array_size + 3).setValue("1", FRAME)
-            param.getChildByIndex(array_size + 4).setValue("0", FRAME)
+            tokenparam_value = tokenparam.getValue(0)  # type: str
+            param.getChildByIndex(array_size + 0).setValue("ATTRIBUTE", 0)
+            param.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)
+            param.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
 
         elif context == "arbitrary":
-            param.getChildByIndex(array_size + 0).setValue("SOURCE", FRAME)
-            param.getChildByIndex(array_size + 1).setValue("TARGET", FRAME)
-            param.getChildByIndex(array_size + 2).setValue("GROUPING", FRAME)
-            param.getChildByIndex(array_size + 3).setValue("1", FRAME)
-            param.getChildByIndex(array_size + 4).setValue("0", FRAME)
-            param.getChildByIndex(array_size + 5).setValue("", FRAME)
+            param.getChildByIndex(array_size + 0).setValue("SOURCE", 0)
+            param.getChildByIndex(array_size + 1).setValue("TARGET", 0)
+            param.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
+            param.getChildByIndex(array_size + 3).setValue("", 0)
 
     elif op == "remove_row":
         param.resizeArray(array_size - tuple_size)

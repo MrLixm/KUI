@@ -1,5 +1,5 @@
 --[[
-version=0.0.8
+version=9
 
 [LICENSE]
 
@@ -93,24 +93,31 @@ function InstancingArray:new(point_data)
     --[[
     Build the array instance from PointCloudData
     ]]
+    local buf
 
     -- 1. PROCESS COMMON & SOURCES ATTRIBUTES
     for _, tt in ipairs(token_target) do
-      self:add(tt["target"], self.pdata:get_attr_value(tt["token"]))
+      buf = self.pdata:get_common_by_name(tt["token"])
+      if buf then
+        self:add(
+            tt["target"],
+            buf:get_data_at()
+        )
+      end
     end
 
     -- 2. PROCESS ARBITRARY ATTRIBUTES
-    for target, arbtr_data in pairs(self.pdata["arbitrary"]) do
+    for target, attr in pairs(self.pdata:get_arbitrary()) do
       -- 1. first process the additional table
       -- we only use arbtr_data for the <additional> key yet so we can do this
-      arbtr_data = arbtr_data["additional"]  -- type: table or NIL
-      if arbtr_data then
-        for addit_target, addit_value in pairs(arbtr_data) do
+      buf = attr.additional  -- type: table or NIL
+      if buf then
+        for addit_target, addit_value in pairs(buf) do
           self:add(addit_target, addit_value)
         end
       end
       -- 2. Add the arbitrary attribute value
-      self:add(target,  self.pdata:get_attr_value(target))
+      self:add(target, attr:get_data_at())
     end
 
     self:add("type", StringAttribute("instance array"))
@@ -143,7 +150,7 @@ local function run()
   logger:info("[run] Finished processing source <", u_pointcloud_sg, ">.",
       pointdata.point_count, " points found.")
 
-  logger:debug("pointdata = \n", pointdata, "\n")
+  --logger:debug("pointdata = \n", pointdata, "\n")
   -- start instancing
   local instance
   instance = InstancingArray:new(pointdata)
