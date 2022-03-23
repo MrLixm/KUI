@@ -148,7 +148,7 @@ local function run()
   pointdata = PointCloudData:new(u_pointcloud_sg, time)
   pointdata:build()
   logger:info("[run] Finished processing source <", u_pointcloud_sg, ">.",
-      pointdata.point_count, " points found.")
+      pointdata.points.count, " points found.")
 
   --logger:debug("pointdata = \n", pointdata, "\n")
   -- start instancing

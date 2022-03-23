@@ -271,6 +271,7 @@ function BaseAttribute:new(parent, source_path, is_static)
         if nearest_sample then
           smplbuf = buf
         else
+          smplbuf = {}
           smplbuf[0.0] = buf
         end
 
@@ -460,6 +461,11 @@ local function SourcesAttribute(parent, source_path)
 
   Motion-blur is disabled.
 
+  Attributes:
+    values:
+      ordered table of sucessing instance source location, corresponding index
+      like {"/root/A", 0, "/root/B", 1, ...}
+
   Note: Don't use <pid> with <__value_get()> as the values are not per-point.
   ]]
 
@@ -492,21 +498,23 @@ local function SourcesAttribute(parent, source_path)
   function inner:get_instance_source_data_at(pid)
     --[[
     Return the instance source location + index to use at given point index.
+
+    Args:
+      pid(number): starts at 0
+
     Returns:
       table: {"instance source location", "index", [...]}
     ]]
 
-    local sourcesd = self:__value_get(nil, true, 0.0)  -- table of values
 
     -- return a list of instance sources locations with indexes
     if not pid then
-      return sourcesd
-      -- TODO this doesnt return source + index ??
+      return self:__value_get(nil, true, 0.0)  -- table of values
     end
 
     -- else if pid return the instance source + index for the given point
 
-    local index = self.parent:get_common_by_name("index"):get_value_at(pid)
+    local index = self.parent:get_common_by_name("index"):get_value_at(pid, 0.0)
     index = index[1] -- string
 
     local source = self:get_source_at(index)
@@ -516,7 +524,8 @@ local function SourcesAttribute(parent, source_path)
 
     -- if the function didn't return yet mean we didn't find an instance source
     utils:logerror("[SourcesAttribute][get_instance_source_data_at] Can't \z
-    find an instance source for pid<", pid, "> from data=", sourcesd)
+    find an instance source for pid<", pid, "> from index=", index,
+        ", source=", source, " with parent=", self.parent.location)
 
   end
 
@@ -531,8 +540,10 @@ local function SourcesAttribute(parent, source_path)
     local out = {}
     local sources = self:get_instance_source_data_at(pid)
     -- filter to only keep locations
-    for i=0, #sources / self.tupleSize - 1 do
-      out[#out + 1] = sources[i * self.tupleSize + 1]
+    -- convert the associated instance index to the table index
+    for i=0, #sources / 2 - 1 do
+      -- storred index start counting at 0 so offset
+      out[tonumber(sources[i * 2 + 2]) + 1] = sources[i * 2 + 1]
     end
     return out
 
@@ -609,18 +620,33 @@ function PointCloudData:new(location)
 
     local data_points = utils:get_attr_value(
       self.location,
-      "instancing.data.points",
+      "instancing.data.points.count",
       error
-    ) -- table of 2 values, first is attribute location, second is tupleSize
+    ) -- table of 1 value
 
-    local points = utils:get_attr_value(
-      self.location,
-      data_points[1],
-      error
-    )
+    if data_points[1] <= 0 then
 
-    self.points = {}
-    self.points.count = #points / data_points[2]
+      data_points = utils:get_attr_value(
+          self.location,
+          "instancing.data.points.attr",
+          error
+      ) -- table of 2 values, first is attribute location, second is tupleSize
+
+      local points = utils:get_attr_value(
+          self.location,
+          data_points[1],
+          error
+      )
+
+      self.points = {}
+      self.points.count = #points / data_points[2]
+
+    else
+
+      self.points = {}
+      self.points.count = data_points[1]
+
+    end
 
     logger:debug(
       "[PointCloudData][_build_points] Finished, found", self.points.count, "points."
@@ -1240,18 +1266,19 @@ function PointCloudData:new(location)
     bool: true if the point is hidden and thus should not be created
   ]]
 
-  local data = self:get_common_by_name("hide"):get_value_at(pid, 0.0) -- table of 0/1
-  if not data then
+    local data = self:get_common_by_name("hide")
+    if not data then
+      return false
+    end
+    data = data:get_value_at(pid, 0.0) -- table of 0|1
+
+    if data[1] == 1 then
+      return true
+    end
+
     return false
+
   end
-
-  if data[1] == 1 then
-    return true
-  end
-
-  return false
-
-end
 
   function attrs:get_common_by_name(name)
     --[[

@@ -146,7 +146,7 @@ function InstanceHierarchical:new(name, id)
     -- 1. PROCESS INSTANCE SOURCE SETUP
     -- had to be first for childAttrs to not override previously set
     local src_attr = point_data:get_common_by_name("sources")
-    src_attr:get_instance_source_data_at(self.id)
+    src_attr = src_attr:get_instance_source_data_at(self.id)
     -- must really be first
     self.gb:set(
         "childAttrs",
@@ -161,7 +161,7 @@ function InstanceHierarchical:new(name, id)
 
     -- 2. PROCESS COMMON ATTRIBUTES
     for _, tt in ipairs(token_target) do
-      buf = self.pdata:get_common_by_name(tt["token"])
+      buf = point_data:get_common_by_name(tt["token"])
       if buf then
         -- add() handle nil value by himself
         self:add(
@@ -313,7 +313,7 @@ function InstancingHierarchical:new(point_data)
 
     local instance
     -- /!\ perfs
-    for pid=0, self.pdata.point_count - 1 do
+    for pid=0, self.pdata.points.count - 1 do
       instance = InstanceHierarchical:new(self.name_tmp, pid)
       instance:build_from_pdata(self.pdata)
       instance:finalize()
@@ -347,9 +347,9 @@ local function create_instances()
   pointdata = PointCloudData:new(u_pointcloud_sg, time)
   pointdata:build()
   logger:info("Finished processing source <", u_pointcloud_sg, ">.",
-      pointdata.point_count, " points found.")
+      pointdata.points.count, " points found.")
 
-  logger:debug("pointdata = \n", pointdata, "\n")
+  --logger:debug("pointdata = \n", pointdata, "\n")
   -- start instancing
   local instance
   instance = InstancingHierarchical:new(pointdata)

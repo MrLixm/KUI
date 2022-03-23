@@ -124,7 +124,7 @@ local function run()
   pointdata:build()
   logger:info(
       "Finished processing source <", u_pointcloud_sg, ">.",
-      pointdata.point_count, " points found."
+      pointdata.points.count, " points found."
   )
   logger:debug("pointdata = \n", pointdata, "\n")
 
@@ -138,7 +138,7 @@ local function run()
   local current_point = {}
   local point_visibility
 
-  for i=0, pointdata.point_count - 1 do
+  for i=0, pointdata.points.count - 1 do
 
     point_visibility = 1  -- the point is visible by default
 
