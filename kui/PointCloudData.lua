@@ -1,5 +1,5 @@
 --[[
-version=11
+version=13
 
 [LICENSE]
 
@@ -30,6 +30,7 @@ logger.formatting:set_tbl_display_functions(false)
 -- heavy loops. Note: this is not that useful for PointCloudData
 local tostring = tostring
 local mathfloor = math.floor
+local next = next
 
 
 local function set_logger_level(self, level)
@@ -107,6 +108,10 @@ local AttrGrp = {
 local BaseAttribute = {}
 function BaseAttribute:new(parent, source_path, is_static)
   --[[
+  Base class for attributes manipulation. Values are usually stored per point
+  at each time samples. Basically we could say this converts a scene graph
+  location attribute to a Lua standard object for easy manipulation.
+
 
   Args:
     parent(PointCloudData):
@@ -119,9 +124,12 @@ function BaseAttribute:new(parent, source_path, is_static)
       simply get the number of values. Thta's why this attribute exists.
     static(bool or nil):
       If true return the default time sample 0.0 instead of a table of time samples.
+    values(table):
+      unordered table of time samples with their corresponding table of values
   ]]
 
   local attrs = {
+    ["_perPoint"] = true,
     ["parent"] = parent,
     ["path"] = source_path,
     ["class"] = false,
@@ -150,6 +158,34 @@ function BaseAttribute:new(parent, source_path, is_static)
     self.tupleSize = self.tupleSize or data.tuple
     self.length =  data.length
     self.values = data.values
+
+  end
+
+  function attrs:rescale_points(pcount)
+    --[[
+    Remove points from the internal value table.
+
+    Args:
+      pcount(number): number of point to keep
+    ]]
+
+    if not self._perPoint then
+      return
+    end
+
+    local values_all = self:__value_get(nil, true, nil)
+
+    -- iterate through samples
+    for _, sv in pairs(values_all) do
+
+      local i, v = next(sv, pcount * self.tupleSize)
+
+      while i do
+        sv[i] = nil
+        i, v = next(sv, i)
+      end
+
+    end
 
   end
 
@@ -213,7 +249,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     The returned values are a DataAttribute instance except if raw=true.
     If self.static=true only the time samples 0.0 will be returned.
 
-    ! Must be loop safe.
+    !! Must be loop safe. !!
 
     Args:
 
@@ -363,6 +399,9 @@ local function ArbitraryAttribute(parent, source_path, is_static)
 
   local inner = BaseAttribute:new(parent, source_path, is_static)
 
+  -- for now we consider it might and might not be per-point so disable by safety
+  inner._perPoint = false
+
   function inner:set_additional_from_string(a_string)
     --[[
     To call before build() !
@@ -470,6 +509,8 @@ local function SourcesAttribute(parent, source_path)
   ]]
 
   local inner = CommonAttribute(parent, source_path, true)
+
+  inner._perPoint = false
 
   function inner:get_source_at(index)
     --[[
@@ -609,7 +650,13 @@ function PointCloudData:new(location)
         "instancing.settings.enable_motion_blur",
         { 0 }
     ) -- type: table
-    self.settings.enable_motion_blur = setting[1]
+    setting = setting[1]
+    if setting == 0.0 then
+      self.settings.disable_motion_blur = true
+      logger:info("[PointCloudData][_build_settings] motion blur disabled.")
+    else
+      self.settings.disable_motion_blur = false
+    end
 
   end
 
@@ -697,7 +744,7 @@ function PointCloudData:new(location)
       attribute = CommonAttribute(
           self,
           path,
-          Tokens.list[token].static
+          self.settings.disable_motion_blur or Tokens.list[token].static
       )
       attribute:build()
 
@@ -716,6 +763,8 @@ function PointCloudData:new(location)
       if Tokens.list[token].force_type then
         attribute:set_data_class(Tokens.list[token].force_type)
       end
+
+      attribute:rescale_points(self.points.count)
 
       self["common"][token] = attribute
 
