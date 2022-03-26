@@ -26,7 +26,7 @@ to choose how you want to use the module :
 
 Kui is shipped as a lua module ~~but also as an "all in one file" script~~.
 
-> Kui also require the [llloger](https://github.com/MrLixm/llloger) module to work.
+> Kui also require the [lllogger](https://github.com/MrLixm/llloger) module to work.
 
 ### As module
 
@@ -54,7 +54,7 @@ more details.
 
 ---
 
-The same need to be done for the `llloger` module that you can find here :
+The same need to be done for the `lllogger` module that you can find here :
 
 > https://github.com/MrLixm/llloger
 
@@ -67,7 +67,7 @@ Z:\config\katana
     └── ...
 ```
 
-So we can simply do `local logging = require("llloger")` (this  line is used in all the modules).
+So we can simply do `local logging = require("lllogger")` (this  line is used in all the modules).
 
 ---
 

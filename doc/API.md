@@ -113,8 +113,6 @@ Lua object ofr easier manipulation by other modules.
 Args :
     location(str): 
         scene graph location of the source.
-    time(num):
-        which time must the attribute be queried at.
 Returns:
     table:
         PointCloudData class instance for the given location
@@ -139,43 +137,67 @@ table:
     See llloger module documentation.
 ``` 
 
-## ![class](https://img.shields.io/badge/class-6F5ADC) PointCloudData
+## ![class](https://img.shields.io/badge/class-6F5ADC) PointCloudData.PointCloudData
 
 The class with everything you will ever need (for instancing with KUI).
 Use it by getting an instance from `PointCloudData:new` describe above.
 
 The class instance is by default empty and must be initialized using `:build()`
 
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.time
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.location
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.common
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.sources
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.arbitrary
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.point_count
-### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.settings
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.PointCloudData.location
+> `string`
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.PointCloudData.common
+> `table of string`
+```
+{
+    "token name": CommonAttribute,
+    ...
+}
+```
 
-### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:build
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.PointCloudData.arbitrary
+> `table of string`
+```
+{
+    "target attribute location": ArbitraryAttribute,
+    ...
+}
+```
+
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.PointCloudData.points
+> `table of string`
+```
+{
+    "count": number
+}
+```
+
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.PointCloudData.settings
+> `table of string`
+```
+{
+    "convert_degree_to_radian": 0 or 1,
+    "convert_trs_to_matrix": 0 or 1,
+    "enable_motion_blur": 0 or 1,
+}
+```
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.PointCloudData:build
 
 Start processing the location and build all the attribute for later use.
 
-### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:get_instance_source_data
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.PointCloudData:get_common_by_name
 
 ```
 Args:
-    pid(num):
-         point index. Which point to use. !! starts at 0 !!
+    name(string):
+         name of the common attribute to get
          
-Returns:
-    table:
-        table from PointCloudData.sources.X
-        {
-          ["path(str)"]="scene graph location of the instance source",
-          ["index(num)"]="index it's correspond to on the pointCloud, same as the parent key (indexN).",
-          ["attrs(table)"] = "Group of local attribute from the instance source location to copy on the instance"
-        }
+    Returns:
+      BaseAttribute or nil: nil if not found
 ```
 
-### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:is_point_hidden
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.PointCloudData:is_point_hidden
 
 Return false is the point at given index must not be created (hidden).
 This is determined by using the <hide> token.
@@ -190,45 +212,105 @@ Returns:
         true if the point is hidden and thus should not be created
 ```
 
-### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:get_index_at_point
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.PointCloudData:get_commons
 
-Return the instance source index used at the given point.
+```
+Returns:
+      table of CommonAttribute:
+       unordered table of CommonAttribute with key=attribute name, value=CommonAttribute
+```
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.PointCloudData:get_arbitrary
+
+Same as above but return ArbitraryAttribute instead of CommonAttribute
+
+## ![class](https://img.shields.io/badge/class-6F5ADC) PointCloudData.BaseAttribute
+
+Base class for attributes manipulation. Values are usually stored per point
+at each time samples. Basically we could say this converts a scene graph
+location attribute to a Lua standard object for easy manipulation.
+
+Must be subclassed for use.
 
 ```
 Args:
-    pid(num):
-         point index. Which point to use. !! starts at 0 !!
-         
-Returns:
-      num: 
+    parent(PointCloudData):
+    source_path(string): attribute path relative to parent's location
+    static(true or nil): If true then "Disable motion-blur" for this attribute.
 ```
 
-### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:get_attr_value
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.parent
+> `PointCloudData`
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.path
+> `string` attribute path relative to parent's location
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.class
+> `DataAttribute` class to use when instancing back the lua table to use in Interface.SetAttr()
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.tupleSize
+> `number`  number of value belonging to the same "group". Ex: 3 is commonly used for x-y-z values.
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.length
+> `number` as the values attribute hold multiple time samples, it can be complex to
+simply get the number of values. Thta's why this attribute exists.
 
-Return the values for the given attribute name.
-It can be a slice for the given pid, or the entire range of values.
-The values have already been processed and is a DataAttribute instance except
-if raw=true.
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.values
+> `table`  unordered table of time samples with their corresponding table of values
+> 
+> Not recommended to be use directly. Use one of the method like `get_value_at` or `set_values`
+### ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.BaseAttribute.static
+> `boolean`  If true return the default time sample 0.0 instead of a table of time samples.
 
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:build
+
+Query the attribute from `path` on the `parent` location and then set attributes
+using the result.
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:new
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:rescale_points
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:set_static
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:set_tuple_size
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:set_values
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:set_data_class
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:get_value_at
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.BaseAttribute:get_data_at
+
+## ![function](https://img.shields.io/badge/function-6F5ADC) PointCloudData.CommonAttribute
+
+Return a subclass of BaseAttribute
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.CommonAttribute:resize_tuple
+
+
+## ![function](https://img.shields.io/badge/function-6F5ADC) PointCloudData.SourcesAttribute
+
+Return a subclass of CommonAttribute
+
+List of instances sources locations with their associated index + source attributes
+Require the `common.index` token to be build on the PointCloudData parent
+
+beware of the 3 getter method returned values :
+- `get_instance_source_data_at()`: return a table like
 ```
-    Args:
-      attr_name(str):
-        name for the key to query.
-        Can be one of <common>/<arbiratry> or just <sources>.
-
-      pid(int or nil):
-        point index: which point to use. If not specified return
-        the whole table. !! starts at 0 !!
-
-      raw(bool or nil):
-        If true return the values as their corresponding DataAttribute instance.
-        false by default (if nil)
-
-    Returns:
-      DataAttribute or table or nil:
-        DataAttribute instance or nil if <attr_name> is empty (=false).
-        table if <raw>=true
+{"instance source location", "index", DataAttribute("source attributes")...}
 ```
+
+- `get_data_at()` ; `get_value_at()` : return a list of `instance source`
+locations only
+
+Motion-blur is disabled. (hardcoded)
+
+`self.values` is an ordered table of successing instance source location, 
+corresponding index, and source attributes like 
+`{"/root/A", 0, GroupAttribute(...), "/root/B", 1, GroupAttribute(...), ...}`
+
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.SourcesAttribute:get_source_at
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.SourcesAttribute:get_instance_source_data_at
+
+## ![function](https://img.shields.io/badge/function-6F5ADC) PointCloudData.ArbitraryAttribute
+
+Return a subclass of BaseAttribute
+
+### ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData.ArbitraryAttribute:set_additional_from_string
 
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)

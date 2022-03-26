@@ -36,9 +36,11 @@ Minimal setup is :
 
 - Set the `pointcloud` parameter with the scene-graph location of the pointcloud
 
+- In the `#points` group, set the points attr to use or enter the point number manually.
+
 - In the `#sources` group, set at least one instance-source with index 0
 
-- In the `#common` group, set at least the `$points` and `$translation` token.
+- In the `#common` group, set at least the `$translation` token.
 
 - In the `#arbitrary` group, you can remove the existing row.
 
@@ -78,6 +80,12 @@ Make sure at least one of the TRS attribute is specified.
 
 The rotations values are excepted to be degrees. 
 
+### settings.Motion Blur
+
+Faster if off, but time samples are not processed which disable motion blur.
+("Faster" is vague so test a before/after) 
+
+
 ### #sources
 
 Specify the instance-sources and their corresponding index here.
@@ -109,11 +117,9 @@ You can create a row with one of this token using the
 
 The column setup is as follows :
 
-  - `[1*n]` = attribute path relative to the source.
-  - `[2*n]` = token to specify what kind of data [1] corresponds to.
-  - `[3*n]` = value grouping : how much value belongs to an individual point.
-  - `[4*n]` = value multiplier : quick way to multiply all values.
-  - `[5*n]` = value add : quick way to offset all values by adding/subtracting a value.
+- `[1*n]` = attribute path relative to the source.
+- `[2*n]` = token to specify what kind of data [1] corresponds to.
+- `[3*n]` = tuple size : how many values belongs to an individual point.
   
 ### #arbitrary
 
@@ -121,14 +127,12 @@ If you need to add other attribute not listed in `#common`.
 
 The column setup is as follows :
 
-  - `[1*n]` = attribute path relative to the source (pointcloud).
-  - `[2*n]` = target attribute path relative to the instance.
-  - `[3*n]` = value grouping : how much value belongs to an individual point.
-  - `[4*n]` = value multiplier : quick way to multiply values.
-  - `[5*n]` = value add : quick way to offset all values by adding/subtracting a value.
-  - `[6*n]` = (optional) additional attributes that must be created on instance. Must be a valid Lua table.
+- `[1*n]` = attribute path relative to the source.
+- `[2*n]` = target attribute path relative to the instance.
+- `[3*n]` = tuple size : how many values belongs to an individual point.
+- `[4*n]` = (optional) additional attributes that must be created on instance. Must be a valid Lua table.
 
-For the 6th column please check [CONFIG_MANUAL.md#column-6](CONFIG_MANUAL.md#column-6).
+For the last forth column please check [CONFIG_MANUAL.md#column-6](CONFIG_MANUAL.md#column-4).
 
 
 

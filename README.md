@@ -1,9 +1,8 @@
 # Katana Uber Instancing (KUI)
 
-![lua](https://img.shields.io/badge/Lua-any-4f4f4f?labelColor=000090&logo=lua&logoColor=white)
-![katana version](https://img.shields.io/badge/Katana-any-4f4f4f?labelColor=FCB123&logo=katana&logoColor=black)
+![lua](https://img.shields.io/badge/Lua-5.1.5+-4f4f4f?labelColor=000090&logo=lua&logoColor=white)
+![katana version](https://img.shields.io/badge/Katana-3.6+-4f4f4f?labelColor=111111&logo=katana&logoColor=FCB123)
 [![License](https://img.shields.io/badge/⚖_license-Apache_2.0-4f4f4f?labelColor=blue)](LICENSE.md)
-![maintained - yes](https://img.shields.io/badge/maintained-yes-4f4f4f?labelColor=57A45B)
 
 Lua module designed for Katana OpScript feature. Trying to provide a flexible
 solution for instancing based on point-cloud locations. 
@@ -19,13 +18,12 @@ Check the [dev branch](https://github.com/MrLixm/KUI/tree/dev) for the version w
 # Features
 
 - Instancing using `Hierarchical` and `Array` methods. Seamlessy swapable.
-- Very flexible :
-  - Quick Multiplication / offset
+- Flexible :
   - Add arbitrary attributes on the fly
   - Convert TRS attributes to Matrices
   - Degree/radian conversions for rotations
 - Logging and error handling.
-- Minimal performance loss compared to more straightforward solutions.
+
 
 
 ![Katana screenshot of a KUI nodegraph](doc/img/katana.png)

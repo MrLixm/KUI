@@ -15,7 +15,7 @@ pre-defined attributes that must be created on the source location
 
 - `instancing.data.points` (string array)
   - `[1*n]` = path to the attribute to use to determine number of points.
-  - `[2*n]` = grouping (tuple size).
+  - `[2*n]` = tuple size (how many values correspond to one point).
 - `instancing.data.sources` (string array) :
   - `[1*n]` = instance source location.
   - `[2*n]` = instance source index.
@@ -23,33 +23,16 @@ pre-defined attributes that must be created on the source location
   These attributes are the most common ones like rotation, matrix, scale, ...
   - `[1*n]` = attribute path relative to the source.
   - `[2*n]` = token to specify what kind of data [1] corresponds to.
-  - `[3*n]` = value grouping : how much value belongs to an individual point.
-  - `[4*n]` = value multiplier : quick way to multiply all values.
-  - `[5*n]` = value add : quick way to offset all values by adding/subtracting a value.
+  - `[3*n]` = tuple size : how many values belongs to an individual point.
 - `instancing.data.arbitrary` (string array) :
   Only you know why this attribute will be useful, they will just be transfered
   to the instance for whatever you need them for.
   - `[1*n]` = attribute path relative to the source.
   - `[2*n]` = target attribute path relative to the instance.
-  - `[3*n]` = value grouping : how much value belongs to an individual point.
-  - `[4*n]` = value multiplier : quick way to multiply values.
-  - `[5*n]` = value add : quick way to offset all values by adding/subtracting a value.
-  - `[6*n]` = (optional) additional attributes that must be created on instance. Must be a valid Lua table.
+  - `[3*n]` = tuple size : how many values belongs to an individual point.
+  - `[4*n]` = (optional) additional attributes that must be created on instance. Must be a valid Lua table.
 
 *See under for detailed explanations.*
-
-### values quick modification
-
-When using the multiplier, or additive attribute, final value is processed as such :
-
-```
-value = value * multiplier + additive
-```
-
-So basic maths, use 1 for multiplier and 0 for additive if no modification is needed.
-
-> ❕ If you use this feature on attribute like `rotationX` token, the math will be 
-applied on all values, including the axis ones, which will led to weird results.
 
 
 ### instancing.data.points
@@ -57,18 +40,18 @@ applied on all values, including the axis ones, which will led to weird results.
 Give an attribute that will be used to determine the number of unique points.
 
 ```lua
-point_count = #points_attr / grouping
+point_count = #points_attr / tupleSize
 ```
 
 ### instancing.data.sources
 
 ![attribute set screenshot for instancing.data.sources](./img/config.sources.png)
 
-#### column 0
+#### column 1
 
 Instance Source's scene graph location to use.
 
-#### column 1 
+#### column 2 
 Instance Source's corresponding index.
 
 > **Index is excepted to start at 0** (important for the `array` method)
@@ -76,9 +59,9 @@ Instance Source's corresponding index.
 
 ### instancing.data.common
 
-List of supported tokens for column `[2]`
-
 ![attribute set screenshot for instancing.data.common](./img/config.common.png)
+
+List of supported tokens for column `[2]`
 ```
 $index
 $skip
@@ -94,24 +77,25 @@ $rotationZ
 
 #### index
 
->`Grouping` can be any (expected to be usually 3 or 1 though).
+>`tupleSize` can be any (expected to be usually 3 or 1 though).
 > 
-> _(Values are anyway converted to `grouping=1` internally )_
+> _(Values are anyway converted to `tupleSize=1` internally )_
 
 **Index is excepted to start at 0** (important for the `array` method)
 
-If you need to offset the index you can specify it in the `[6]` column.
-`-1` to substract 1 or `1` to add 1. (`0` if not needed)
+If you need to offset the index it is recommended to use an OpScript on
+the attribute before the KUI instancer. Have a look at 
+[attrMath](https://github.com/MrLixm/Foundry_Katana/tree/main/src/attributes/attrMath)
+for this.
 
-Final processed value must correspond to the index values used in `instancing.data.sources`.
 
 
 #### skip
 
 
->`Grouping` can be any. (expected to be usually 3 or 1 though).
+>`tupleSize` can be any. (expected to be usually 3 or 1 though).
 > 
-> _(Values are anyway converted to `grouping=1` internally )_
+> _(Values are anyway converted to `tupleSize=1` internally )_
 
 List of points index to skip (don't render). 
 For *hierarchical* the instance location is just not generated while for
@@ -120,18 +104,16 @@ For *hierarchical* the instance location is just not generated while for
 
 #### hide
 
->`Grouping` must be 1.
+>`tupleSize` must be 1.
 
 Table where each index correspond to a point and the value wheter it's hiden
 or not. Where `1=hidden`, `0=visible`. Similar to `$skip` but have a value for every
 point.
 
-_Multiplier and offset are ignored._
-
 
 #### matrix
 
->`Grouping` must be 16 (4*4 matrix).
+>`tupleSize` must be 16 (4*4 matrix).
 
 Specify translations, rotations and scale in one attribute.
 
@@ -140,14 +122,14 @@ If specified, take priority over all the other transforms attributes.
 
 #### scale
 
->`Grouping` can be any. #TODO should be 3 ?
+>`tupleSize` can be any. #TODO should be 3 ?
 
 Source attribute is expected to store values in X-Y-Z order.
 
 
 #### translation
 
->`Grouping` must be 3.
+>`tupleSize` must be 3.
 
 Source attribute is expected to store values in X-Y-Z order.
 
@@ -156,7 +138,7 @@ You can of course specify the same attribute used for `$points`.
 
 #### rotation
 
->`Grouping` must be 3 .
+>`tupleSize` must be 3 .
 
 Source attribute is expected to store values in X-Y-Z order.
 Values are excepted to be in degree. See 
@@ -177,7 +159,7 @@ If you'd like to change the axis you have to use the `$rotationX/Y/Z` tokens.
 
 #### rotation X/Y/Z
 
->`Grouping` can only be 4 :
+>`tupleSize` can only be 4 :
 
 Values on source attributes are excepted to be as : `rotation value, X axis, Y axis, Z axis.`
 
@@ -186,12 +168,10 @@ The `$rotation` token, if specified, take over the priority on these one.
 
 ### instancing.data.arbitrary
 
-First 4 columns are similar to `common`.
-
 ![attribute set screenshot for instancing.data.arbitrary](./img/config.arbitrary.png)
 
 
-#### column 6
+#### column 4
 
 Arbitrary attributes might require to not only set the value but also its
 `scope`,  `inputType`, ... attributes. To do so you can provide a
@@ -246,7 +226,9 @@ AND `rotationX` AND `scale` token.
 - (optional)(int) : 
   - `0` to disable motion-blur support.  
   - `1` to enable motion blur support (reading multiple time samples on attributes)
-  
+
+If the original attributes have time samples, disabling this (0) can make the
+instancing processing a bit faster but will of course disable motion-blur.
 
 ## 3. User Arguments
 
