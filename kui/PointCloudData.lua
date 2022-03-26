@@ -156,8 +156,7 @@ function BaseAttribute:new(parent, source_path, is_static)
 
     self.class = self.class or data.class
     self.tupleSize = self.tupleSize or data.tuple
-    self.length =  data.length
-    self.values = data.values
+    self:set_values(data.values)
 
   end
 
@@ -498,7 +497,7 @@ local function SourcesAttribute(parent, source_path)
     - get_data_at() ; get_value_at() :
         return a list of `instance source` locations only
 
-  Motion-blur is disabled.
+  Motion-blur is disabled. (hardcoded)
 
   Attributes:
     values:
@@ -512,22 +511,25 @@ local function SourcesAttribute(parent, source_path)
 
   inner._perPoint = false
 
-  function inner:get_source_at(index)
+  function inner:_get_tuple_index_at_index(index)
     --[[
-    Return the instance source corresponding to the given index
+    Return the value table's tuple index for the given instance source index
+
     Args:
-      index(number or string):
+      index(number or string): instance source index
     Returns:
-      string or nil: nil if not found
+      number or nil:
+        nil if bad index given, else values table's tuple index starting at 0
     ]]
+
     index = tostring(index)
 
     local sources = self:__value_get(nil, true, 0.0)  -- table of values
 
     for i=0, self.length / self.tupleSize - 1 do
-
+      -- index is the second item of the tuple
       if index == sources[i*self.tupleSize + 2] then
-        return sources[i*self.tupleSize + 1]
+        return i
       end
 
     end
@@ -536,21 +538,45 @@ local function SourcesAttribute(parent, source_path)
 
   end
 
+  function inner:get_source_at(index)
+    --[[
+    Return the instance source corresponding to the given index
+    Args:
+      index(number or string):
+    Returns:
+      string or nil: nil if not found
+    ]]
+
+    local k = self:_get_tuple_index_at_index(index)
+    if k then
+      local v = self:__value_get(nil, true, 0.0)  -- table of values
+      return v[k * self.tupleSize + 1]
+    end
+    return
+
+  end
+
   function inner:get_instance_source_data_at(pid)
     --[[
-    Return the instance source location + index to use at given point index.
+    Return the instance source location + index + source attributes
+     to use at given point index.
 
     Args:
       pid(number): starts at 0
 
     Returns:
-      table: {"instance source location", "index", [...]}
+      table: {
+        "instance source location",
+        "index",
+        DataAttribute("source attributes"),
+        [...]
+      }
     ]]
-
+    local v = self:__value_get(nil, true, 0.0)  -- table of values
 
     -- return a list of instance sources locations with indexes
     if not pid then
-      return self:__value_get(nil, true, 0.0)  -- table of values
+      return v
     end
 
     -- else if pid return the instance source + index for the given point
@@ -558,15 +584,15 @@ local function SourcesAttribute(parent, source_path)
     local index = self.parent:get_common_by_name("index"):get_value_at(pid, 0.0)
     index = index[1] -- string
 
-    local source = self:get_source_at(index)
-    if source then
-      return {source, index}
+    local ti = self:_get_tuple_index_at_index(index)
+    if ti then
+      return {v[ti * self.tupleSize + 1], index, v[ti * self.tupleSize + 3]}
     end
 
     -- if the function didn't return yet mean we didn't find an instance source
     utils:logerror("[SourcesAttribute][get_instance_source_data_at] Can't \z
     find an instance source for pid<", pid, "> from index=", index,
-        ", source=", source, " with parent=", self.parent.location)
+        ", tuple_index=", ti)
 
   end
 
@@ -582,9 +608,9 @@ local function SourcesAttribute(parent, source_path)
     local sources = self:get_instance_source_data_at(pid)
     -- filter to only keep locations
     -- convert the associated instance index to the table index
-    for i=0, #sources / 2 - 1 do
+    for i=0, #sources / self.tupleSize - 1 do
       -- storred index start counting at 0 so offset
-      out[tonumber(sources[i * 2 + 2]) + 1] = sources[i * 2 + 1]
+      out[tonumber(sources[i * self.tupleSize + 2]) + 1] = sources[i * self.tupleSize + 1]
     end
     return out
 
@@ -598,6 +624,33 @@ local function SourcesAttribute(parent, source_path)
     local out = self:get_value_at(pid)
     out = StringAttribute(out, 1)
     return out
+
+  end
+
+  function inner:set_values(values)
+    --[[
+    Args:
+      values(table): unordered tables of time samples of values
+    ]]
+    values = values[0.0]
+
+    -- we will add a third index to each tuple which correspond to the local
+    -- attribute stored on the source location
+    local new = {}
+    for i=0,  #values / 2 - 1 do
+
+      new[#new + 1] = values[i * 2 + 1]  -- instance source location
+      new[#new + 1] = values[i * 2 + 2]  -- index
+      -- add the third index
+      new[#new + 1] = Interface.GetAttr("", values[i * 2 + 1])
+
+    end
+
+    self.length = #new
+    values = {}
+    values[0.0] = new
+    self.values = values
+    self.tupleSize = 3
 
   end
 

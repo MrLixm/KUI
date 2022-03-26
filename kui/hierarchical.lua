@@ -148,10 +148,8 @@ function InstanceHierarchical:new(name, id)
     local src_attr = point_data:get_common_by_name("sources")
     src_attr = src_attr:get_instance_source_data_at(self.id)
     -- must really be first
-    self.gb:set(
-        "childAttrs",
-        Interface.GetAttr("", src_attr[1])
-    )
+    -- this fucker makes things super slow later but can't do much about it
+    self.gb:set("childAttrs", src_attr[3])
     self:set_instance_source(
         src_attr[1],
         src_attr[2]
