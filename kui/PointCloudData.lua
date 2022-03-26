@@ -1086,16 +1086,6 @@ function PointCloudData:new(location)
       return
     end
 
-    -- TODO check and remove this
-    if utils.get_katana_version() < 400 then
-      logger:error(
-        "[PointCloudData][_convert_to_matrix] Aborted. Current Katana version <",
-        utils.get_katana_version(),
-        "> is not supported by this method. Require Katana 4.0+"
-      )
-      return
-    end
-
     local v
     local matrices_smpls = {}
     local matrices

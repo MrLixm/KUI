@@ -1,20 +1,20 @@
 {
-  "name": "kui",
-  "version": "2.0.0-build.3",
-  "author": "Liam Collod",
-  "license": "Apache 2.0",
-  "description": "Katana OpScript for flexible instancing setup",
-  "keywords": [
-    "vfx",
-    "katana",
-    "opscript",
-    "instancing",
-    "instance"
-  ],
-  "dependencies": {
-    "lllogger": ">=1.0.0"
-  },
-  "engines": {
-    "lua": "~5.1.5"
-  }
+    "name": "kui",
+    "version": "2.0.0-build.4",
+    "author": "Liam Collod",
+    "license": "Apache 2.0",
+    "description": "Katana OpScript for flexible instancing setup",
+    "keywords": [
+        "vfx",
+        "katana",
+        "opscript",
+        "instancing",
+        "instance"
+    ],
+    "dependencies": {
+        "lllogger": ">=1.0.0"
+    },
+    "engines": {
+        "lua": "~5.1.5"
+    }
 }

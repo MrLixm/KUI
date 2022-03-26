@@ -240,7 +240,6 @@ The rotations values are excepted to be degree. Use
 For motion-blur, the list of time samples are computed from the `translation`
 AND `rotationX` AND `scale` token.
 
-⚠ This feature requires Katana 4.0 + (`Imath` module missing before)
 
 #### instancing.settings.enable_motion_blur
 

@@ -78,8 +78,6 @@ Make sure at least one of the TRS attribute is specified.
 
 The rotations values are excepted to be degrees. 
 
-> ⚠ This feature requires Katana 4.0 + to be used.
-
 ### #sources
 
 Specify the instance-sources and their corresponding index here.
