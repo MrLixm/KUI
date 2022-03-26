@@ -34,7 +34,7 @@ TODO
 
 # Tests
 
-You can use the 2 point-clouds in [./test-data](./test-data) to test KUI
+You can use the 2 point-clouds in [dev/data/alembics](../dev/data/alembics) to test KUI
 while developing. They have all the TRS attributes + a randomColor one (
 ! actually name colorRandom on the 100k one 😬)
 
