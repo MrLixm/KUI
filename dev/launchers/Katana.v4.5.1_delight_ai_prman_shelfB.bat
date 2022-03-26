@@ -11,9 +11,9 @@ set "KATANA_TAGLINE=With 3Delight, Arnold 4.0.0.2, RenderMan 24.3, XGEN, KUI"
 
 set "PATH=%PATH%;%U_KATANA_HOME%\bin";
 set KATANA_CATALOG_RECT_UPDATE_BUFFER_SIZE=1
-set "KATANA_USER_RESOURCE_DIRECTORY=Z:\dccs\katana\library\shelf0006\prefs"
+set "KATANA_USER_RESOURCE_DIRECTORY=%~dp0..\prefs\shelfB\prefs"
 
-set "LUA_PATH=%LUA_PATH%;Z:\dccs\katana\library\shelf0006\lua\?.lua"
+set "LUA_PATH=%LUA_PATH%;%~dp0..\prefs\shelfB\lua\?.lua"
 
 :: Delight config
 set "U_DELIGHT=C:\Program Files\3Delight"
