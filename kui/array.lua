@@ -50,9 +50,9 @@ local token_target = {
   { ["token"]="skip", ["target"]="geometry.instanceSkipIndex" },
   { ["token"]="matrix", ["target"]="geometry.instanceMatrix" },
   { ["token"]="translation", ["target"]="geometry.instanceTranslate" },
-  { ["token"]="rotationX", ["target"]="geometry.instanceRotateX" },
-  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
   { ["token"]="rotationZ", ["target"]="geometry.instanceRotateZ" },
+  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
+  { ["token"]="rotationX", ["target"]="geometry.instanceRotateX" },
   { ["token"]="scale", ["target"]="geometry.instanceScale" },
 }
 

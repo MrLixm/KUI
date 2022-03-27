@@ -165,10 +165,14 @@ function BaseAttribute:new(parent, source_path, is_static)
     Remove points from the internal value table.
 
     Args:
-      pcount(number): number of point to keep
+      pcount(number): number of point to keep (a point = a tuple)
     ]]
 
     if not self._perPoint then
+      return
+    end
+
+    if pcount * self.tupleSize == self.length then
       return
     end
 
@@ -177,11 +181,14 @@ function BaseAttribute:new(parent, source_path, is_static)
     -- iterate through samples
     for _, sv in pairs(values_all) do
 
-      local i, v = next(sv, pcount * self.tupleSize)
+      for i=#sv, 1, -1 do
 
-      while i do
+        if i == pcount * self.tupleSize then
+          break
+        end
+
         sv[i] = nil
-        i, v = next(sv, i)
+
       end
 
     end
@@ -454,7 +461,7 @@ local function CommonAttribute(parent, source_path, is_static)
       new_size(number): number of index per tuple to keep, cannot be bigger than
         the current tupleSize.
     ]]
-    if not self.values then
+    if not self.values or new_size == self.tupleSize then
       return
     end
 
@@ -467,6 +474,7 @@ local function CommonAttribute(parent, source_path, is_static)
     local newvalues
 
     local invalues = self:__value_get(nil, true)
+
     for smpl, oldvalues in pairs(invalues) do
       newvalues = {}
       for i=0, self.length / self.tupleSize - 1 do
@@ -477,7 +485,8 @@ local function CommonAttribute(parent, source_path, is_static)
       end
       samples[smpl] = newvalues
     end
-    self.values = samples
+
+    self:set_values(samples)
     self.tupleSize = new_size
 
   end
@@ -801,6 +810,10 @@ function PointCloudData:new(location)
       )
       attribute:build()
 
+      if token == "skip" then
+        attribute._perPoint = false
+      end
+
       -- -1 mean the tupleSize was not specified so let the one found by build
       if tuplesize ~= -1 then
         attribute:set_tuple_size(tuplesize)
@@ -821,8 +834,12 @@ function PointCloudData:new(location)
 
       self["common"][token] = attribute
 
+
     end
 
+    logger:debug(
+      "[PointCloudData][_build_common] Finished"
+    )
     -- end _build_common
   end
 
@@ -881,6 +898,10 @@ function PointCloudData:new(location)
 
     end
 
+    logger:debug(
+      "[PointCloudData][_build_arbitrary] Finished"
+    )
+
     -- end _build_common
   end
 
@@ -905,29 +926,35 @@ function PointCloudData:new(location)
     end
 
     local sv
+    local attr
 
     -- convert the rotationX/Y/Z tokens
     for _, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
 
-      sv = self.common[token]:get_value_at()
+      attr = self:get_common_by_name(token)
+      sv = attr:get_value_at()
 
       for sample, values in pairs(sv) do
-        for i=0, #values / self.common[token].tupleSize - 1 do
+        for i=0, #values / attr.tupleSize - 1 do
           -- make sure the axis are not processed !
-          sv[i * self.common[token].tupleSize + 1] = convert_func(
-              sv[i * self.common[token].tupleSize + 1]
+          values[i * attr.tupleSize + 1] = convert_func(
+              values[i * attr.tupleSize + 1]
           )
         end
       end
 
     end
 
+    logger:debug(
+      "[PointCloudData][_convert_degree_radian] Converted rotation axis"
+    )
+
     -- convert the rotation token
     sv = self.common.rotation:get_value_at()
     for _, values in pairs(sv) do
 
-      for i, v in ipairs(values) do
-        v[i] = convert_func(v)
+      for i=1, #values do
+        values[i] = convert_func(values[i])
       end
 
     end
@@ -1337,6 +1364,7 @@ function PointCloudData:new(location)
     -- check that the data queried above is valid
     self:_validate()
 
+    -- order matters
     self:_convert_rotation_to_axis()
     self:_convert_skip_n_hide()
     self:_convert_degree_radian()
@@ -1345,18 +1373,18 @@ function PointCloudData:new(location)
   end
 
   function attrs:is_point_hidden(pid)
-  --[[
-  Return false is the point at given index must not be created (hidden).
-  This is determined by using the <hide> token.
+    --[[
+    Return false is the point at given index must not be created (hidden).
+    This is determined by using the <hide> token.
 
-  /!\ perfs
+    /!\ perfs
 
-  Args:
-    pid(int): point index: which point to use. !! starts at 0 !!
+    Args:
+      pid(int): point index: which point to use. !! starts at 0 !!
 
-  Returns:
-    bool: true if the point is hidden and thus should not be created
-  ]]
+    Returns:
+      bool: true if the point is hidden and thus should not be created
+    ]]
 
     local data = self:get_common_by_name("hide")
     if not data then
