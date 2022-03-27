@@ -150,7 +150,7 @@ local function _get_attr_data(location, attr_path, static)
   if static then
     values[0.0] = lattr:getNearestSample(0)
   else
-    for smplindex=0, lattr:getNumberOfTimeSamples() do
+    for smplindex=0, lattr:getNumberOfTimeSamples() - 1 do
       smplindex = lattr:getSampleTime(smplindex)
       values[smplindex] = lattr:getNearestSample(smplindex)
     end
@@ -323,7 +323,7 @@ function _M:slice_attribute(attr, at_index, usearray)
 
   else
 
-    for smplindex=0, attr:getNumberOfTimeSamples() do
+    for smplindex=0, attr:getNumberOfTimeSamples() - 1 do
       buf = {}
       smplindex = attr:getSampleTime(smplindex)
       array = attr:getNearestSample(smplindex)

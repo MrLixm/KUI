@@ -25,6 +25,7 @@ local utils = require("kui.utils")
 local logger = logging:get_logger("kui.PointCloudData")
 logger:set_level("debug")
 logger.formatting:set_tbl_display_functions(false)
+logger.formatting:set_tbl_display_indexes(true)
 
 -- we make some global functions local as this will improve performances in
 -- heavy loops. Note: this is not that useful for PointCloudData
@@ -1122,11 +1123,21 @@ function PointCloudData:new(location)
 
     -- compute a list of samples base on <translation> or <rotationX> or <scale>
     -- we are sure to not miss samples
-    local samples_list = utils:get_samples_list_from(
-        self:get_common_by_name("translation"):get_value_at(),
-        self:get_common_by_name("rotationX"):get_value_at(),
-        self:get_common_by_name("scale"):get_value_at()
+    local samples_list = {}
+    for i, token in ipairs({"translation", "rotationX", "scale"}) do
+      samples_list[i] = self:get_common_by_name(token)
+      if samples_list[i] then
+        samples_list[i] =  samples_list[i]:get_value_at()
+      end
+    end
+
+    samples_list = utils:get_samples_list_from(
+        unpack(samples_list)
     )  -- type: table: {-0.25=true, 0.0=true, ...}
+    logger:debug(
+        "[PointCloudData][_convert_trs_to_matrix] Samples found are:",
+        samples_list
+    )
 
     -- create samples based on the ones found above
     for sample, _ in pairs(samples_list) do
@@ -1138,14 +1149,16 @@ function PointCloudData:new(location)
 
         -- translation
         m44 = im44d()
-        v = self:get_common_by_name("translation"):get_value_at(i, sample)
+        v = self:get_common_by_name("translation")
         if v then
+          v = v:get_value_at(i, sample)
           m44:translate(iv3d(v))
         end
 
         -- rotations
-        v = self:get_common_by_name("rotationX"):get_value_at(i, sample)
+        v = self:get_common_by_name("rotationX")
         if v then
+          v = v:get_value_at(i, sample)
           v = {utils.degree_to_radian(v[1])}
           v[2] = utils.degree_to_radian(
               self:get_common_by_name("rotationY"):get_value_at(i, sample)[1]
@@ -1157,8 +1170,9 @@ function PointCloudData:new(location)
         end
 
         -- scale
-        v = self:get_common_by_name("scale"):get_value_at(i, sample)
+        v = self:get_common_by_name("scale")
         if v then
+          v = v:get_value_at(i, sample)
           m44:scale(iv3d(v))
         end
 
