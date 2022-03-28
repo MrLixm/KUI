@@ -80,13 +80,28 @@ TODO not built yet.
 Goal would be to remove the module dependencies and have the whole code
 in one big-ass lua file for whoever might need this special case.
 
+Comment on issue #8 if you need this special case.
 
-## Misc
+## Utilisation
+
+Once installed you can use the pre-made node for a fast and easy setup
+or configure manually the scene. See [CONFIG_NODE.md](CONFIG_NODE.md) and
+[CONFIG_MANUAL.md](CONFIG_MANUAL.md).
+
+
+# Version support
+
+KUI has been developed on Katana 4.5.1, tested on 4.0.2 and 3.6.5. Lower versions
+should be supported but with no guarantees.
+
+
+# Misc
 
 The code use Lua tables that cannot store more than 2^27 (134 million) values.
 I hope you never reach this amount of values. (something like 44mi points
 with XYZ values and 8,3 mi points for a Matrix attribute). A fix would be
-to instead use Katana's `Array` attribute class internally.
+to instead use Katana's `Array` attribute class internally. Which is already
+logged as issue #3
 
 
 # Performances
@@ -96,7 +111,17 @@ method. I should also specify that this is not some highly accurate measurement.
 It was only to give me a rough idea or wether I needed to run some optimisation
 on the code or not.
 
-> 100k points took ~14s to process by Geolib.
+> time given is  Geolib Pre-traversal Report total time for a preview render
+> using Arnold.
+
+For Hierarchical :
+ 
+| version | time |
+|---------|------|
+| 3.6.5   | ~10s |
+| 4.5.1   | ~15s |
+
+_Time to process for Array method is too short to be worth measured._
 
 You can have a look at all the tests I runned, compared to my original "straight-forward"
 script, here :

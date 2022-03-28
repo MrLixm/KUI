@@ -10,20 +10,17 @@
 
 # Installation
 
-You can find at the root of this 2 `.macro` files that can be used in Katana
+You can find at the root of this repo, 2 `.xml` files that can be used in Katana
 to quickly create a node with everything configured for you.
-
-> To install a Katana macro please check the [Katana documentation](https://learn.foundry.com/katana/Content/ug/groups_macros_super_tools/macros.html).
-
-The other option is to use the [KUI_Nodes.xml](../KUI_Nodes.xml) file.
 You can open it with any text editor, copy it's content, and paste it into
 your Katana Nodegraph. As simple as that.
+
+You can then, in Katana, generate a macro for easier re-use.
 
 # Use
 
 KUI is divided in 2 nodes, one for setting the source point-cloud (KUISetup), 
 another to actually produce the instances (KUIInstancer).
-
 
 
 ## KUISetup
@@ -112,6 +109,8 @@ $rotationY
 $rotationZ
 ```
 
+To get more details on each token, see [CONFIG_MANUAL.md#instancing.data.common](CONFIG_MANUAL.md#instancingdatacommon).
+
 You can create a row with one of this token using the 
 `Add New Row with Above Token` button. 
 
@@ -167,8 +166,8 @@ Choose your instancing method.
 
 ### log_level
 
-Set the level of message displayed in the console. It is not recommended to 
-use debug when having a huge number of points on the point-cloud. (>100).
+Set the level of message displayed in the console. You can use the debug level
+even when having a high number of instances.
 
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)

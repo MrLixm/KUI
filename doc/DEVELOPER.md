@@ -36,7 +36,7 @@ TODO
 
 You can use the 2 point-clouds in [dev/data/alembics](../dev/data/alembics) to test KUI
 while developing. They have all the TRS attributes + a randomColor one (
-! actually name colorRandom on the 100k one 😬)
+! actually named colorRandom on the 100k one 😬)
 
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
