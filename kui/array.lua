@@ -113,7 +113,18 @@ function InstancingArray:new(point_data)
       buf = attr.additional  -- type: table or NIL
       if buf then
         for addit_target, addit_value in pairs(buf) do
+
+          if not Attribute.IsAttribute(addit_value) then
+            utils:logerror(
+                "[array][build] Additional key <",
+                addit_target,
+                "> has a invalid value (not Attribute):",
+                addit_value
+            )
+          end
+
           self:add(addit_target, addit_value)
+
         end
       end
       -- 2. Add the arbitrary attribute value

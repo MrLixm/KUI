@@ -135,7 +135,7 @@ The column setup is as follows :
 - `[3*n]` = tuple size : how many values belongs to an individual point.
 - `[4*n]` = (optional) additional attributes that must be created on instance. Must be a valid Lua table.
 
-For the last forth column please check [CONFIG_MANUAL.md#column-6](CONFIG_MANUAL.md#column-4).
+**For the last forth column please check [CONFIG_MANUAL.md#column-4](CONFIG_MANUAL.md#column-4).**
 
 
 

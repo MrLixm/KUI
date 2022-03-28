@@ -130,7 +130,7 @@ function BaseAttribute:new(parent, source_path, is_static)
   ]]
 
   local attrs = {
-    ["_perPoint"] = true,
+    ["perPoint"] = true,
     ["parent"] = parent,
     ["path"] = source_path,
     ["class"] = false,
@@ -169,7 +169,7 @@ function BaseAttribute:new(parent, source_path, is_static)
       pcount(number): number of point to keep (a point = a tuple)
     ]]
 
-    if not self._perPoint then
+    if not self.perPoint then
       return
     end
 
@@ -191,6 +191,8 @@ function BaseAttribute:new(parent, source_path, is_static)
         sv[i] = nil
 
       end
+
+      self.length = #sv
 
     end
 
@@ -283,6 +285,11 @@ function BaseAttribute:new(parent, source_path, is_static)
 
     if not self.values then
       return nil
+    end
+
+    -- we can't get a slice at the given point if the attribute is not perPoint !
+    if not self.perPoint then
+      pid = nil
     end
 
     -- no point specified, return all the values
@@ -406,8 +413,9 @@ local function ArbitraryAttribute(parent, source_path, is_static)
 
   local inner = BaseAttribute:new(parent, source_path, is_static)
 
-  -- for now we consider it might and might not be per-point so disable by safety
-  inner._perPoint = false
+  -- consider by default as perPoint. The user have to specify the contrary
+  -- in the bottom additional attribute.
+  inner.perPoint = true
 
   function inner:set_additional_from_string(a_string)
     --[[
@@ -438,6 +446,11 @@ local function ArbitraryAttribute(parent, source_path, is_static)
     if a_string.multi_sampled then
       self.static = false
       a_string.multi_sampled = nil
+    end
+
+    if a_string.not_per_point then
+      self.perPoint = false
+      a_string.not_per_point = nil
     end
 
     self.additional = a_string
@@ -519,7 +532,7 @@ local function SourcesAttribute(parent, source_path)
 
   local inner = CommonAttribute(parent, source_path, true)
 
-  inner._perPoint = false
+  inner.perPoint = false
 
   function inner:_get_tuple_index_at_index(index)
     --[[
@@ -683,9 +696,9 @@ function PointCloudData:new(location)
 
   -- TODO see if need for remove
   -- build the common key with all the supported tokens
-  for token_name, _ in pairs(Tokens.list) do
-    attrs.common[token_name] = false
-  end
+  --for token_name, _ in pairs(Tokens.list) do
+  --  attrs.common[token_name] = false
+  --end
 
   function attrs:_build_settings()
     --[[
@@ -812,7 +825,7 @@ function PointCloudData:new(location)
       attribute:build()
 
       if token == "skip" then
-        attribute._perPoint = false
+        attribute.perPoint = false
       end
 
       -- -1 mean the tupleSize was not specified so let the one found by build
@@ -894,6 +907,8 @@ function PointCloudData:new(location)
       if tuplesize ~= -1 then
         attribute:set_tuple_size(tuplesize)
       end
+
+      attribute:rescale_points(self.points.count)
 
       self["arbitrary"][target] = attribute
 

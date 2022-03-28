@@ -192,6 +192,26 @@ Here is an example for an arbitrary `randomColor` attribute:
 inside is compiled to Lua code using `loadstring("return "..content)` where
 `content` is the string submitted.
 
+Arbitrary attributes are not multi-sampled by default. If you need to have
+it multi-sampled you can specify it in this column by adding a `multi_sampled` 
+key with any non-nil value like :
+
+```lua
+{
+  ["multi_sampled"]=true
+}
+```
+
+Arbitrary attributes are considered as per-point by default. (a different tuple
+ of value for each instance/point). If that's not the case you can specify it in
+this column by adding a `not_per_point` key with any non-nil value like :
+
+```lua
+{
+  ["not_per_point"]=true
+}
+```
+
 ### instancing.settings
 
 #### instancing.settings.convert_degree_to_radian
