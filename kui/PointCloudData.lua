@@ -1114,36 +1114,45 @@ function PointCloudData:new(location)
       return
     end
 
-    local v
-    local matrices_smpls = {}
-    local matrices
-    local m44
-    local im44d = Imath.M44d
-    local iv3d = Imath.V3d
 
     -- compute a list of samples base on <translation> or <rotationX> or <scale>
-    -- we are sure to not miss samples
-    local samples_list = {}
-    for i, token in ipairs({"translation", "rotationX", "scale"}) do
-      samples_list[i] = self:get_common_by_name(token)
-      if samples_list[i] then
-        samples_list[i] =  samples_list[i]:get_value_at()
+    -- we only want to use the biggest list of samples from the three ones.
+    local buf
+    local samples_list
+
+    for _, token in ipairs({"translation", "rotationX", "scale"}) do
+
+      buf = self:get_common_by_name(token)
+
+      if buf then
+        buf =  buf:get_value_at()
+        buf =  utils:get_samples_list_from(buf) -- type: table: {0.0, -0.25, ...}
+        if not samples_list or (#buf > #samples_list) then
+          samples_list = buf
+        end
       end
+
     end
 
-    samples_list = utils:get_samples_list_from(
-        unpack(samples_list)
-    )  -- type: table: {-0.25=true, 0.0=true, ...}
     logger:debug(
         "[PointCloudData][_convert_trs_to_matrix] Samples found are:",
         samples_list
     )
 
+    local v
+    local matrices_smpls = {}
+    local matrices
+    local sample
+    local m44
+    local im44d = Imath.M44d
+    local iv3d = Imath.V3d
+
     -- create samples based on the ones found above
-    for sample, _ in pairs(samples_list) do
+    for smplindex=1, #samples_list do
 
       -- build a new 4x4 matrix for each point
       matrices = {}
+      sample = samples_list[smplindex]
 
       for i=0, self.points.count - 1 do
 

@@ -218,7 +218,8 @@ The rotations values are excepted to be degree. Use
 `instancing.settings.convert_degree_to_radian=-1` if that's not the case.
 
 For motion-blur, the list of time samples are computed from the `translation`
-AND `rotationX` AND `scale` token.
+or `rotationX` or `scale` token. The biggest list of time-samples from the 3
+is used.
 
 
 #### instancing.settings.enable_motion_blur

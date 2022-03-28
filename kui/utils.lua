@@ -416,22 +416,31 @@ function _M:get_samples_list_from(...)
     ...(table(s) or nil): multiple tables of time samples
 
   Returns:
-    table: unordered table of time samples
+    table: ordered table of unordered time samples like {0.0, -0.25, 0.25}
   ]]
 
-  local samples_list = {}
+  local samples_list = {}  -- unordered table to avoid duplicate in <out>
+  local out = {}
   local t
 
   for i=1, select("#",...) do
+
     t = select(i,...)
+
     if t and type(t)=="table" then
+
       for smpl, _ in pairs(t) do
-        samples_list[smpl] = true
+        if not samples_list[smpl] then
+          samples_list[smpl] = true
+          out[#out+1] = smpl
+        end
       end
+
     end
+
   end
 
-  return samples_list
+  return out
 
 end
 

@@ -75,7 +75,11 @@ If enabled, the `translation`, `rotationX/Y/Z` and `scale` attributes are conver
 to a 4x4 identity matrix (the matrix attribute). 
 Make sure at least one of the TRS attribute is specified. 
 
-The rotations values are excepted to be degrees. 
+The rotations values are excepted to be degrees.
+
+For motion-blur, the list of time samples are computed from the `translation`
+or `rotationX` or `scale` token. The biggest list of time-samples from the 3
+is used.
 
 ### settings.Motion Blur
 
