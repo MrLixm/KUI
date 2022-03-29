@@ -31,7 +31,6 @@ logger.formatting:set_tbl_display_indexes(true)
 -- heavy loops. Note: this is not that useful for PointCloudData
 local tostring = tostring
 local mathfloor = math.floor
-local next = next
 
 
 local function set_logger_level(self, level)
@@ -693,12 +692,6 @@ function PointCloudData:new(location)
     ["points"]=false,
     ["settings"] = {}
   }
-
-  -- TODO see if need for remove
-  -- build the common key with all the supported tokens
-  --for token_name, _ in pairs(Tokens.list) do
-  --  attrs.common[token_name] = false
-  --end
 
   function attrs:_build_settings()
     --[[

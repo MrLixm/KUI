@@ -22,6 +22,8 @@ Check the [dev branch](https://github.com/MrLixm/KUI/tree/dev) for the version w
   - Add arbitrary attributes on the fly
   - Convert TRS attributes to Matrices
   - Degree/radian conversions for rotations
+  - Render engine agnostic
+- Motion Blur support
 - Logging and error handling.
 
 

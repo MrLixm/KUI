@@ -21,6 +21,8 @@ to choose how you want to use the module :
 - Use the pre-built nodes for fast and easy setup. See [CONFIG_NODE](CONFIG_NODE.md).
 - Manually config the scene. See [CONFIG_MANUAL](CONFIG_MANUAL.md).
 
+It is recommended to read at leat [CONFIG_MANUAL](CONFIG_MANUAL.md) fully and
+then [CONFIG_NODE](CONFIG_NODE.md) to properly understand how KUI works.
 
 ## Installation
 
