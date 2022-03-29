@@ -416,7 +416,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
   -- in the bottom additional attribute.
   inner.perPoint = true
 
-  function inner:set_additional_from_string(a_string)
+  function inner:set_additional_from_string(add_obj, target_attr_path)
     --[[
     To call before build() !
 
@@ -424,35 +424,52 @@ local function ArbitraryAttribute(parent, source_path, is_static)
       a_string(string): string representing a valid Lua table.
     ]]
 
-    if not a_string or a_string=="" then
+    if not add_obj or add_obj =="" then
       return
     end
 
-    a_string = utils:logassert(
-        loadstring(utils:conkat("return ", a_string)),
+    -- 1. convert string to table
+    add_obj = utils:logassert(
+        loadstring(utils:conkat("return ", add_obj)),
         "[PointCloudData][_build_arbitrary] Error while converting \z
         <instancing.data.arbitrary> additional column to Lua.",
         " Issue in: ",
-        a_string
+        add_obj
     )
-    a_string = a_string()  -- this should be a table
-    if not a_string then
+    add_obj = add_obj()  -- this should be a table
+    if not add_obj or type(add_obj) ~= "table" then
+      logger:warning(
+          "[ArbitraryAttribute][set_additional_from_string] Invalid \z
+          additional argument passed: <", add_obj, ">."
+      )
       return
     end
 
-    -- process attributes that are meant to be used internally :
+    -- 2. process attributes that are meant to be used internally :
 
-    if a_string.multi_sampled then
+    if add_obj.multi_sampled then
       self.static = false
-      a_string.multi_sampled = nil
+      add_obj.multi_sampled = nil
     end
 
-    if a_string.not_per_point then
+    if add_obj.not_per_point then
       self.perPoint = false
-      a_string.not_per_point = nil
+      add_obj.not_per_point = nil
     end
 
-    self.additional = a_string
+    -- 3. convert relative attributes path to absolute
+    -- split the target path based on the dot
+    local source = {}
+    for k in target_attr_path:gmatch("([^%.]+)") do
+      source[#source + 1] = k
+    end
+
+    for ptarget, pdata in pairs(add_obj) do
+      add_obj[ptarget] = nil
+      add_obj[utils:path_rel_to_abs(ptarget, source)] = pdata
+    end
+
+    self.additional = add_obj
 
   end
 
@@ -892,7 +909,7 @@ function PointCloudData:new(location)
           -- you need to specify it in additional if you want it
       )
       -- to execute before build() (set static)!
-      attribute:set_additional_from_string(additional)
+      attribute:set_additional_from_string(additional, target)
 
       attribute:build()
 

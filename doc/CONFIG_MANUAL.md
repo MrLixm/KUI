@@ -173,6 +173,10 @@ The `$rotation` token, if specified, take over the priority on these one.
 
 #### column 4
 
+> ⚠ You must know that this parameter has a potential security flaw as everything
+inside is compiled to Lua code using `loadstring("return "..content)` where
+`content` is the string submitted.
+
 Arbitrary attributes might require to not only set the value but also its
 `scope`,  `inputType`, ... attributes. To do so you can provide a
 Lua-formatted table that describe how they must be created :
@@ -180,17 +184,20 @@ Lua-formatted table that describe how they must be created :
 ```lua
 { ["target path"]=DataAttribute(value), ... }
 ```
-Here is an example for an arbitrary `randomColor` attribute:
+
+Here is an example for an arbitrary `geometry.arbitrary.randomColor.value` attribute:
 ```lua
 {
     ["geometry.arbitrary.randomColor.inputType"]=StringAttribute("color3"),
-    ["geometry.arbitrary.randomColor.scope"]=StringAttribute("primitive"),
+    ["..scope"]=StringAttribute("primitive"),
 }
 ```
 
-> ⚠ You must know that this parameter has a potential security flaw as everything
-inside is compiled to Lua code using `loadstring("return "..content)` where
-`content` is the string submitted.
+You can notice the weird syntax of the second key. Relative path are supported
+to specify your attribute path _(relative to the target attribute path (column 2))_ .
+Each dot represent the current attribute level for the column 2 so in our case
+, two `..` means "go one level up" which means `geometry.arbitrary.randomColor`.
+Putting 3 dots `...` would resolve to `geometry.arbitrary` in our case.
 
 Arbitrary attributes are not multi-sampled by default. If you need to have
 it multi-sampled you can specify it in this column by adding a `multi_sampled` 

@@ -444,4 +444,29 @@ function _M:get_samples_list_from(...)
 
 end
 
+
+function _M:path_rel_to_abs(rel_path, source_path)
+  --[[
+  Args:
+    rel_path(string): relative path starting (or not) with dot(s)
+    source_path(table): ordered table of strings
+  Returns:
+    string: rel_path turned to an absolute path based on source_path.
+  ]]
+
+  local match = rel_path:match("^(%.+)")
+  if not match then
+    return rel_path
+  end
+
+  local out = {}
+
+  for i=1, #source_path - (#match - 1) do
+    out[#out+1] = source_path[i]
+  end
+  -- delete the relatives dot found while adding
+  out[#out+1] = rel_path:gsub(("^%s"):format(match), "")
+  return tableconcat(out, ".")
+end
+
 return _M
