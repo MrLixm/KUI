@@ -34,9 +34,15 @@ TODO
 
 # Tests
 
-You can use the 2 point-clouds in [dev/data/alembics](../dev/data/alembics) to test KUI
-while developing. They have all the TRS attributes + a randomColor one (
-! actually named colorRandom on the 100k one 😬)
+To test KUI you can open the Katana scene [kui.tests.katana](../dev/scenes/kui.tests.katana).
+
+A scene from RenderMan is also available at the same location that allow you
+to test motion-blur using a different pointcloud.
+
+To launch these scenes you can use the batch launchers (Windows) located in
+[`../dev/launchers`](../dev/launchers). Before launching Katana it is recommended
+to run [copy2prefs.py](../dev/copy2prefs.py) if you made modifications to KUI
+files or if it's the first time you are launching it after cloning this repo.
 
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)

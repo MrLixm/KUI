@@ -9,6 +9,14 @@
 [![DEVELOPER](https://img.shields.io/badge/developer-4f4f4f)](DEVELOPER.md)
 
 
+The order of operation is as follows :
+
+- Create supported attributes on the instancing source (pointcloud).
+- Create the OpScript to read the source and produce the instances.
+
+
+## 1. Source attribute configuration
+
 The script is able to support a lot of point-cloud configurations thanks to
 pre-defined attributes that must be created on the source location 
 (the point-cloud) :
@@ -258,12 +266,15 @@ is used.
 If the original attributes have time samples, disabling this (0) can make the
 instancing processing a bit faster but will of course disable motion-blur.
 
-## 3. User Arguments
+## 2. OpScript
 
 To configure on the OpScript node. Configuration change depending on the 
 instancing method. 
 
 ### Hierarchical
+
+Use the file [opscript.kui.hierarchical.lua](../opscript.kui.hierarchical.lua)
+in the `script.lua` parameters.
 
 - `location` = target group location for instances 
 - `applyWhere` = at specific location
@@ -287,6 +298,9 @@ source to pick.
 Logging level to use. Availables are `debug, info, warning, error`.
 
 ### Array
+
+Use the file [opscript.kui.array.lua](../opscript.kui.array.lua)
+in the `script.lua` parameters.
 
 - `location` = target location for the instance array location (include its name)
 - `applyWhere` = at specific location
