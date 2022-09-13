@@ -20,21 +20,10 @@ limitations under the License.
 ]]
 
 local logging = require("lllogger")
-local logger = logging:get_logger("kui.utils")
--- log message from here are only error
-logger.formatting:set_tbl_display_functions(false)
-logger.formatting:set_str_display_quotes(true)
-
-local function set_logger_level(self, level)
-  --[[
-  Propagate the level to all modules too
-  ]]
-  logger:set_level(level)
-end
+local logger = logging.getLogger(...)
 
 local _M = {}
 _M["logger"] = logger
-_M["set_logger_level"] = set_logger_level
 
 --[[ __________________________________________________________________________
   LUA UTILITIES

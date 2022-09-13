@@ -20,12 +20,10 @@ limitations under the License.
 ]]
 
 local logging = require("lllogger")
-local logger = logging:get_logger("kui.boxCulling")
-logger.formatting:set_tbl_display_functions(false)
-logger.formatting:set_str_display_quotes(true)
-
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
+
+local logger = logging.getLogger(...)
 
 
 --[[ __________________________________________________________________________

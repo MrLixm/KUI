@@ -22,24 +22,13 @@ limitations under the License.
 local logging = require("lllogger")
 local utils = require("kui.utils")
 
-local logger = logging:get_logger("kui.PointCloudData")
-logger:set_level("debug")
-logger.formatting:set_tbl_display_functions(false)
+local logger = logging.getLogger(...)
 logger.formatting:set_tbl_display_indexes(true)
 
 -- we make some global functions local as this will improve performances in
 -- heavy loops. Note: this is not that useful for PointCloudData
 local tostring = tostring
 local mathfloor = math.floor
-
-
-local function set_logger_level(self, level)
-  --[[
-  Propagate the level to all modules too
-  ]]
-  logger:set_level(level)
-  utils.logger:set_level(level)
-end
 
 
 --[[ __________________________________________________________________________
@@ -1473,8 +1462,5 @@ function PointCloudData:new(location)
   return attrs
 
 end
-
-PointCloudData["logger"] = logger -- for external modif
-PointCloudData["set_logger_level"] = set_logger_level -- for external modif
 
 return PointCloudData
