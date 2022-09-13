@@ -289,7 +289,7 @@ function BaseAttribute:new(parent, source_path, is_static)
       end
 
       if nearest_sample then
-        smplbuf = smplbuf[utils:get_nearest_from_samples(smplbuf, nearest_sample)]
+        smplbuf = smplbuf[utils.get_nearest_from_samples(smplbuf, nearest_sample)]
       end
 
     -- else return a slice of the table
@@ -321,7 +321,7 @@ function BaseAttribute:new(parent, source_path, is_static)
         if nearest_sample then
 
           local closest_smpl
-          closest_smpl = utils:get_nearest_from_samples(self.values, nearest_sample)
+          closest_smpl = utils.get_nearest_from_samples(self.values, nearest_sample)
 
           smplbuf = {}
 

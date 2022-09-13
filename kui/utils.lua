@@ -302,7 +302,7 @@ function _M_.get_katana_version()
 end
 
 
-function _M_:get_nearest_from_samples(samples, nearest)
+function _M_.get_nearest_from_samples(samples, nearest)
   --[[
   Source: https://stackoverflow.com/a/5464961/13806195
 
