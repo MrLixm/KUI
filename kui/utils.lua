@@ -18,12 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ]]
-
+local _M_ = {}
 local logging = require("lllogger")
 local logger = logging.getLogger(...)
 
-local _M = {}
-_M["logger"] = logger
 
 --[[ __________________________________________________________________________
   LUA UTILITIES
@@ -38,7 +36,7 @@ local mathpi = math.pi
 local mathabs = math.abs
 local type = type
 
-function _M:conkat(...)
+function _M_:conkat(...)
   --[[
   The loop-safe string concatenation method.
   ]]
@@ -49,7 +47,7 @@ function _M:conkat(...)
   return tableconcat(buf)
 end
 
-function _M:logerror(...)
+function _M_:logerror(...)
   --[[
   log an error first then stop the script by raising a lua error()
 
@@ -63,7 +61,7 @@ function _M:logerror(...)
 
 end
 
-function _M:logassert(toassert, ...)
+function _M_:logassert(toassert, ...)
   --[[
   Check is toassert is true else log an error.
 
@@ -99,7 +97,7 @@ local function _get_attribute_class(kattribute)
   elseif Attribute.IsString(kattribute) == true then
     return StringAttribute
   else
-    _M:logerror(
+    _M_:logerror(
       "[_get_attribute_class] passed attribute <",
       kattribute,
       ">is not supported."
@@ -155,7 +153,7 @@ end
 -- PUBLIC -----------------
 
 
-function _M:get_attr_data(location, attr_path, default, static)
+function _M_:get_attr_data(location, attr_path, default, static)
   --[[
   Get the given attribute on the location.
   Return it as a lua table describing the DataAttribute structure it had.
@@ -199,7 +197,7 @@ function _M:get_attr_data(location, attr_path, default, static)
 end
 
 
-function _M:get_attr_value(location, attr_path, default)
+function _M_:get_attr_value(location, attr_path, default)
   --[[
   Get the given attribute value on the location.
   Queried attribute is not multi-sampled and only it's value is returned
@@ -237,7 +235,7 @@ function _M:get_attr_value(location, attr_path, default)
 end
 
 
-function _M:get_user_attr(name, default_value)
+function _M_:get_user_attr(name, default_value)
     --[[
     Return an OpScipt user attribute.
     If not found return the default_value. (unless asked to raise an error)
@@ -266,7 +264,7 @@ end
 
 
 -- TODO see if the bottom method need to be deleted
-function _M:slice_attribute(attr, at_index, usearray)
+function _M_:slice_attribute(attr, at_index, usearray)
   --[[
   From the given DataAttribute return itself but with just the values at the
   specified tuple index. This means getNumberOfValues==getTupleSize.
@@ -333,7 +331,7 @@ function _M:slice_attribute(attr, at_index, usearray)
 end
 
 
-function _M.degree_to_radian(rotation)
+function _M_.degree_to_radian(rotation)
   --[[
   Args:
     rotation(num): rotation value to convert to radian
@@ -345,7 +343,7 @@ function _M.degree_to_radian(rotation)
 end
 
 
-function _M.radian_to_degree(radian)
+function _M_.radian_to_degree(radian)
   --[[
   Args:
     radian(num): radian value to convert to degree
@@ -357,7 +355,7 @@ function _M.radian_to_degree(radian)
 end
 
 
-function _M.get_katana_version()
+function _M_.get_katana_version()
   --[[
   Returns:
     num:
@@ -372,7 +370,7 @@ function _M.get_katana_version()
 end
 
 
-function _M:get_nearest_from_samples(samples, nearest)
+function _M_:get_nearest_from_samples(samples, nearest)
   --[[
   Source: https://stackoverflow.com/a/5464961/13806195
 
@@ -399,7 +397,7 @@ function _M:get_nearest_from_samples(samples, nearest)
 
 end
 
-function _M:get_samples_list_from(...)
+function _M_:get_samples_list_from(...)
   --[[
   Args:
     ...(table(s) or nil): multiple tables of time samples
@@ -434,7 +432,7 @@ function _M:get_samples_list_from(...)
 end
 
 
-function _M:path_rel_to_abs(rel_path, source_path)
+function _M_:path_rel_to_abs(rel_path, source_path)
   --[[
   Args:
     rel_path(string): relative path starting (or not) with dot(s)
@@ -458,4 +456,4 @@ function _M:path_rel_to_abs(rel_path, source_path)
   return tableconcat(out, ".")
 end
 
-return _M
+return _M_

@@ -18,8 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ]]
-
-
+local _M_ = {}
 local logging = require("lllogger")
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
@@ -388,7 +387,8 @@ local function finalize_instances()
 
 end
 
-return {
-  ["run_root"] = atroot,
-  ["run_not_root"] = finalize_instances,
-}
+-- TODO change name to run_at_root
+_M_.atroot = atroot
+_M_.run_not_root = finalize_instances
+
+return _M_

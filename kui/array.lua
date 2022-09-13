@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ]]
-
+local _M_ = {}
 local logging = require("lllogger")
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
@@ -132,7 +132,7 @@ end
 -- processes ------------------------------------------------------------------
 
 
-local function run()
+function _M_.run()
   --[[
   Create the instance
   ]]
@@ -164,6 +164,4 @@ local function run()
 end
 
 
-return {
-  ["run"] = run,
-}
+return _M_
