@@ -61,7 +61,7 @@ function _M_.logerror(...)
 
 end
 
-function _M_:logassert(toassert, ...)
+function _M_.logassert(toassert, ...)
   --[[
   Check is toassert is true else log an error.
 

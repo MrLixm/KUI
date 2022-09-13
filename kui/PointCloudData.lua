@@ -418,7 +418,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
     end
 
     -- 1. convert string to table
-    add_obj = utils:logassert(
+    add_obj = utils.logassert(
         loadstring(utils.conkat("return ", add_obj)),
         "[PointCloudData][_build_arbitrary] Error while converting \z
         <instancing.data.arbitrary> additional column to Lua.",
