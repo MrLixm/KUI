@@ -165,7 +165,7 @@ function InstanceHierarchical:new(name, id)
         for addit_target, addit_value in pairs(buf) do
 
           if not Attribute.IsAttribute(addit_value) then
-            utils:logerror(
+            utils.logerror(
                 "[hierarchical][build] Additional key <",
                 addit_target,
                 "> has a invalid value (not Attribute):",
@@ -215,7 +215,7 @@ function InstanceHierarchical:new(name, id)
 
     -- safety check that $id is present
     if not out:match("%$id") then
-      utils:logerror(
+      utils.logerror(
           "[InstanceHierarchical][get_name] Passed name template <",
           out,
           "> doesn't have the mandatory <$id> token."

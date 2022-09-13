@@ -77,7 +77,7 @@ function Tokens:check_token(token)
     end
   end
 
-  utils:logerror(
+  utils.logerror(
     "[Tokens:check_token] Invalid token <",
       token,">."
   )
@@ -210,7 +210,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     if self.length then
       local d = self.length / size
       if mathfloor(d) ~= d then
-        utils:logerror("[BaseAttribute][",self.path,"][set_tuple_size] Given \z
+        utils.logerror("[BaseAttribute][",self.path,"][set_tuple_size] Given \z
         size <", size, "> is not valid. (", self.length, "/size ~=int)")
       end
     end
@@ -485,7 +485,7 @@ local function CommonAttribute(parent, source_path, is_static)
     end
 
     if new_size > self.tupleSize then
-      utils:logerror("[CommonAttribute][resize_tuple] new_size<",new_size,
+      utils.logerror("[CommonAttribute][resize_tuple] new_size<",new_size,
           "> can't be bigger than current tupleSize<", self.tupleSize, ">")
     end
 
@@ -618,7 +618,7 @@ local function SourcesAttribute(parent, source_path)
     end
 
     -- if the function didn't return yet mean we didn't find an instance source
-    utils:logerror("[SourcesAttribute][get_instance_source_data_at] Can't \z
+    utils.logerror("[SourcesAttribute][get_instance_source_data_at] Can't \z
     find an instance source for pid<", pid, "> from index=", index,
         ", tuple_index=", ti)
 
@@ -1245,7 +1245,7 @@ function PointCloudData:new(location)
 
     -- attr points must always exists
     if not self.points.count then
-      utils:logerror(
+      utils.logerror(
           "[PointCloudData][_validate] points.count was not found for <",
           self.location,
           ">."
@@ -1254,7 +1254,7 @@ function PointCloudData:new(location)
 
     -- we need at least one instance source
     if not self.common.sources then
-      utils:logerror(
+      utils.logerror(
           "[PointCloudData][_validate] No instance sources specified \z
            for location <",
           self.location,
@@ -1264,7 +1264,7 @@ function PointCloudData:new(location)
 
     -- instance sources index must start at 0
     if self.common.sources:get_source_at("0") == nil then
-      utils:logerror(
+      utils.logerror(
         "[PointCloudData][_validate] No index 0 found on <common.sources> attribute."
       )
     end
@@ -1273,7 +1273,7 @@ function PointCloudData:new(location)
     -- TODO update once SourcesAttribute finished
     --for _, isource_data in ipairs(self.sources) do
     --  if not isource_data["index"] then
-    --    utils:logerror(
+    --    utils.logerror(
     --        "[PointCloudData][_validate] No index specified for \z
     --        instance source <",
     --        self.isource_data["path"],
@@ -1334,7 +1334,7 @@ function PointCloudData:new(location)
           self.common.rotationY or
           self.common.rotationZ
       ) then
-        utils:logerror(
+        utils.logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> doesn't have all the <rotationX/Y/Z> tokens declared \z
           (but declare currently at least one)."
@@ -1358,7 +1358,7 @@ function PointCloudData:new(location)
     -- verify grouping values
     if self.common.rotation then
       if self.common.rotation.tupleSize ~= 3 then
-        utils:logerror(
+        utils.logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $rotation token only accepts 3 as grouping, not ",
           self.common.rotation.grouping
@@ -1367,7 +1367,7 @@ function PointCloudData:new(location)
     end
     if self.common.matrix then
       if self.common.matrix.tupleSize ~= 16 then
-        utils:logerror(
+        utils.logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $matrix token only accepts 16 as grouping, not ",
           self.common.matrix.grouping
@@ -1376,7 +1376,7 @@ function PointCloudData:new(location)
     end
     if self.common.translation then
       if self.common.translation.tupleSize ~= 3 then
-        utils:logerror(
+        utils.logerror(
           "[PointCloudData][_validate] Source <", self.location,
           "> $translation token only accepts 3 as grouping, not ",
           self.common.translation.grouping

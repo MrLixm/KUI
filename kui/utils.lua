@@ -47,7 +47,7 @@ function _M_.conkat(...)
   return tableconcat(buf)
 end
 
-function _M_:logerror(...)
+function _M_.logerror(...)
   --[[
   log an error first then stop the script by raising a lua error()
 
@@ -69,7 +69,7 @@ function _M_:logassert(toassert, ...)
     ...(any): arguments used for log's message. Converted to string.
   ]]
   if not toassert then
-    self:logerror(...)
+    _M_.logerror(...)
   end
   return toassert
 end
@@ -179,7 +179,7 @@ function _M_:get_attr_data(location, attr_path, default, static)
   if not out then
 
     if default==error then
-      self:logerror(
+      _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
           "> doesn't have the attr_path <",
@@ -216,7 +216,7 @@ function _M_:get_attr_value(location, attr_path, default)
   if not out then
 
     if default==error then
-      self:logerror(
+      _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
           "> doesn't have the attr_path <",
@@ -253,7 +253,7 @@ function _M_:get_user_attr(name, default_value)
       return argvalue:getNearestSample(0)
 
     elseif default_value==error then
-      self:logerror("[get_user_attr] user attribute <",name,"> not found.")
+      _M_.logerror("[get_user_attr] user attribute <",name,"> not found.")
 
     else
       return default_value
@@ -286,7 +286,7 @@ function _M_:slice_attribute(attr, at_index, usearray)
   local class = self:get_attribute_class(attr)
 
   if at_index > attr:getNumberOfTuples() then
-    self:logerror(
+    _M_.logerror(
         "[slice_attribute] at_index arg <",
         at_index,
         "> specified for attr is not valid: should be inferior to",

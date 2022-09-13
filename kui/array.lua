@@ -104,7 +104,7 @@ function InstancingArray:new(point_data)
         for addit_target, addit_value in pairs(buf) do
 
           if not Attribute.IsAttribute(addit_value) then
-            utils:logerror(
+            utils.logerror(
                 "[array][build] Additional key <",
                 addit_target,
                 "> has a invalid value (not Attribute):",
