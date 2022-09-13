@@ -114,7 +114,7 @@ function InstanceHierarchical:new(name, id)
     end
 
     self.gb:set(
-        utils:conkat("childAttrs.", attr_path),
+        utils.conkat("childAttrs.", attr_path),
         attr_value
     )
   end
@@ -246,7 +246,7 @@ function InstanceHierarchical:new(name, id)
     -- Assign the tokens to their value
     -- key is a regex, value must be a string
     local tokens  = {
-      ["%$id%d*"] = stringformat(utils:conkat("%0", digits, "d"), self.id),
+      ["%$id%d*"] = stringformat(utils.conkat("%0", digits, "d"), self.id),
       ["%$sourcename"] = sourcename,
       ["%$sourceindex"] = sourceindex
     }

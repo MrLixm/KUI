@@ -36,7 +36,7 @@ local mathpi = math.pi
 local mathabs = math.abs
 local type = type
 
-function _M_:conkat(...)
+function _M_.conkat(...)
   --[[
   The loop-safe string concatenation method.
   ]]
@@ -55,7 +55,7 @@ function _M_:logerror(...)
     ...(any): message to log, composed of multiple arguments that will be
       converted to string using tostring()
   ]]
-  local logmsg = self:conkat(...)
+  local logmsg = _M_.conkat(...)
   logger:error(logmsg)
   error(logmsg)
 
@@ -247,7 +247,7 @@ function _M_:get_user_attr(name, default_value)
     Returns:
         table or any: table of value on attribute or default value
     ]]
-    local argvalue = Interface.GetOpArg(self:conkat("user.",name))
+    local argvalue = Interface.GetOpArg(_M_.conkat("user.",name))
 
     if argvalue then
       return argvalue:getNearestSample(0)

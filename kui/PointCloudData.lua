@@ -70,7 +70,7 @@ function Tokens:check_token(token)
   ]]
   for token_supported, _ in pairs(self.list) do
     -- add the <$> in font of the known token for comparison with the arg
-    token_supported = utils:conkat("$", token_supported)
+    token_supported = utils.conkat("$", token_supported)
     -- if similar retur the arg token without the <$>
     if token_supported == token then
       return token:gsub("%$", "")
@@ -419,7 +419,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
 
     -- 1. convert string to table
     add_obj = utils:logassert(
-        loadstring(utils:conkat("return ", add_obj)),
+        loadstring(utils.conkat("return ", add_obj)),
         "[PointCloudData][_build_arbitrary] Error while converting \z
         <instancing.data.arbitrary> additional column to Lua.",
         " Issue in: ",
