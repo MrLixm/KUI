@@ -105,12 +105,12 @@ local function run()
 
   local time = Interface.GetCurrentTime()
 
-  local u_pointcloud_sg = utils:get_user_attr(
+  local u_pointcloud_sg = utils.get_user_attr(
     "pointcloud_sg",
     error
   )[1]  -- type: str
   -- culling_locations(table): {"CEL","CEL",...}
-  local culling_locations = utils:get_user_attr(
+  local culling_locations = utils.get_user_attr(
     "culling_locations",
     error
   )

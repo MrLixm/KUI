@@ -235,7 +235,7 @@ function _M_.get_attr_value(location, attr_path, default)
 end
 
 
-function _M_:get_user_attr(name, default_value)
+function _M_.get_user_attr(name, default_value)
     --[[
     Return an OpScipt user attribute.
     If not found return the default_value. (unless asked to raise an error)

@@ -140,7 +140,7 @@ function _M_.run()
   local stime = os.clock()
   local time = Interface.GetCurrentTime() -- int
 
-  local u_pointcloud_sg = utils:get_user_attr("pointcloud_sg", error)[1]
+  local u_pointcloud_sg = utils.get_user_attr("pointcloud_sg", error)[1]
 
   -- process the source pointcloud
   logger:info("[run] Started processing source <", u_pointcloud_sg, ">.")
