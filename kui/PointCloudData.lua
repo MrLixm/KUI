@@ -136,7 +136,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     Only override <values> and <length> if it's already set. (not false)
     ]]
 
-    local data = utils:get_attr_data(
+    local data = utils.get_attr_data(
       self.parent.location,
       self.path,
       error,

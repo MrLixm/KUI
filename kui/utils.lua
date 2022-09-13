@@ -153,7 +153,7 @@ end
 -- PUBLIC -----------------
 
 
-function _M_:get_attr_data(location, attr_path, default, static)
+function _M_.get_attr_data(location, attr_path, default, static)
   --[[
   Get the given attribute on the location.
   Return it as a lua table describing the DataAttribute structure it had.
