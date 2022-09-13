@@ -41,8 +41,8 @@ function _M_.conkat(...)
   The loop-safe string concatenation method.
   ]]
   local buf = {}
-  for i=1, select("#",...) do
-    buf[ #buf + 1 ] = tostring(select(i,...))
+  for i = 1, select("#", ...) do
+    buf[#buf + 1] = tostring(select(i, ...))
   end
   return tableconcat(buf)
 end
@@ -98,13 +98,12 @@ local function _get_attribute_class(kattribute)
     return StringAttribute
   else
     _M_:logerror(
-      "[_get_attribute_class] passed attribute <",
-      kattribute,
-      ">is not supported."
+        "[_get_attribute_class] passed attribute <",
+        kattribute,
+        ">is not supported."
     )
   end
 end
-
 
 local function _get_attr_data(location, attr_path, static)
   --[[
@@ -137,7 +136,7 @@ local function _get_attr_data(location, attr_path, static)
   if static then
     values[0.0] = lattr:getNearestSample(0)
   else
-    for smplindex=0, lattr:getNumberOfTimeSamples() - 1 do
+    for smplindex = 0, lattr:getNumberOfTimeSamples() - 1 do
       smplindex = lattr:getSampleTime(smplindex)
       values[smplindex] = lattr:getNearestSample(smplindex)
     end
@@ -178,7 +177,7 @@ function _M_.get_attr_data(location, attr_path, default, static)
 
   if not out then
 
-    if default==error then
+    if default == error then
       _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
@@ -195,7 +194,6 @@ function _M_.get_attr_data(location, attr_path, default, static)
   return out
 
 end
-
 
 function _M_.get_attr_value(location, attr_path, default)
   --[[
@@ -215,7 +213,7 @@ function _M_.get_attr_value(location, attr_path, default)
 
   if not out then
 
-    if default==error then
+    if default == error then
       _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
@@ -234,34 +232,32 @@ function _M_.get_attr_value(location, attr_path, default)
 
 end
 
-
 function _M_.get_user_attr(name, default_value)
-    --[[
-    Return an OpScipt user attribute.
-    If not found return the default_value. (unless asked to raise an error)
+  --[[
+  Return an OpScipt user attribute.
+  If not found return the default_value. (unless asked to raise an error)
 
-    Args:
-        name(str): attribute location (don't need the <user.>)
-        default_value(any): value to return if user attr not found
-          you can use the <error> builtin to raise an error instead
-    Returns:
-        table or any: table of value on attribute or default value
-    ]]
-    local argvalue = Interface.GetOpArg(_M_.conkat("user.",name))
+  Args:
+      name(str): attribute location (don't need the <user.>)
+      default_value(any): value to return if user attr not found
+        you can use the <error> builtin to raise an error instead
+  Returns:
+      table or any: table of value on attribute or default value
+  ]]
+  local argvalue = Interface.GetOpArg(_M_.conkat("user.", name))
 
-    if argvalue then
-      return argvalue:getNearestSample(0)
+  if argvalue then
+    return argvalue:getNearestSample(0)
 
-    elseif default_value==error then
-      _M_.logerror("[get_user_attr] user attribute <",name,"> not found.")
+  elseif default_value == error then
+    _M_.logerror("[get_user_attr] user attribute <", name, "> not found.")
 
-    else
-      return default_value
+  else
+    return default_value
 
-    end
+  end
 
 end
-
 
 function _M_.degree_to_radian(rotation)
   --[[
@@ -271,9 +267,8 @@ function _M_.degree_to_radian(rotation)
     num:
       rotation value converted to radian
   ]]
-  return rotation * (mathpi/180.0)
+  return rotation * (mathpi / 180.0)
 end
-
 
 function _M_.radian_to_degree(radian)
   --[[
@@ -283,9 +278,8 @@ function _M_.radian_to_degree(radian)
     num:
       radian value converted to degree
   ]]
-  return radian * (180.0/mathpi)
+  return radian * (180.0 / mathpi)
 end
-
 
 function _M_.get_katana_version()
   --[[
@@ -300,7 +294,6 @@ function _M_.get_katana_version()
   return version
 
 end
-
 
 function _M_.get_nearest_from_samples(samples, nearest)
   --[[
@@ -318,10 +311,10 @@ function _M_.get_nearest_from_samples(samples, nearest)
 
   for sample, _ in pairs(samples) do
 
-      if not smallestSoFar or
-      (mathabs(nearest - smallestSoFar) > mathabs(sample - nearest)) then
-          smallestSoFar = sample
-      end
+    if not smallestSoFar or
+        (mathabs(nearest - smallestSoFar) > mathabs(sample - nearest)) then
+      smallestSoFar = sample
+    end
 
   end
 
@@ -342,16 +335,16 @@ function _M_.get_samples_list_from(...)
   local out = {}
   local t
 
-  for i=1, select("#",...) do
+  for i = 1, select("#", ...) do
 
-    t = select(i,...)
+    t = select(i, ...)
 
-    if t and type(t)=="table" then
+    if t and type(t) == "table" then
 
       for smpl, _ in pairs(t) do
         if not samples_list[smpl] then
           samples_list[smpl] = true
-          out[#out+1] = smpl
+          out[#out + 1] = smpl
         end
       end
 
@@ -362,7 +355,6 @@ function _M_.get_samples_list_from(...)
   return out
 
 end
-
 
 function _M_.path_rel_to_abs(rel_path, source_path)
   --[[
@@ -380,11 +372,11 @@ function _M_.path_rel_to_abs(rel_path, source_path)
 
   local out = {}
 
-  for i=1, #source_path - (#match - 1) do
-    out[#out+1] = source_path[i]
+  for i = 1, #source_path - (#match - 1) do
+    out[#out + 1] = source_path[i]
   end
   -- delete the relatives dot found while adding
-  out[#out+1] = rel_path:gsub(("^%s"):format(match), "")
+  out[#out + 1] = rel_path:gsub(("^%s"):format(match), "")
   return tableconcat(out, ".")
 end
 

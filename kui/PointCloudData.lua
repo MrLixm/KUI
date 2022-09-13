@@ -44,19 +44,19 @@ list of supported tokens with useful info used internally
   true to "disable motio-blur" (use only time sample at 0.0)
 ]]
 local Tokens = {
-      ["list"] = {
-        ["sources"]      = { ["force_type"]=StringAttribute, ["static"]=true },
-        ["index"]        = { ["force_type"]=IntAttribute, ["static"]=true },
-        ["skip"]         = { ["force_type"]=IntAttribute, ["static"]=true },
-        ["hide"]         = { ["force_type"]=IntAttribute, ["static"]=true },
-        ["matrix"]       = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["translation"]  = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["scale"]        = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["rotation"]     = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["rotationX"]    = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["rotationY"]    = { ["force_type"]=DoubleAttribute, ["static"]=false },
-        ["rotationZ"]    = { ["force_type"]=DoubleAttribute, ["static"]=false }
-      }
+  ["list"] = {
+    ["sources"] = { ["force_type"] = StringAttribute, ["static"] = true },
+    ["index"] = { ["force_type"] = IntAttribute, ["static"] = true },
+    ["skip"] = { ["force_type"] = IntAttribute, ["static"] = true },
+    ["hide"] = { ["force_type"] = IntAttribute, ["static"] = true },
+    ["matrix"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["translation"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["scale"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["rotation"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["rotationX"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["rotationY"] = { ["force_type"] = DoubleAttribute, ["static"] = false },
+    ["rotationZ"] = { ["force_type"] = DoubleAttribute, ["static"] = false }
+  }
 }
 function Tokens:check_token(token)
   --[[
@@ -78,8 +78,8 @@ function Tokens:check_token(token)
   end
 
   utils.logerror(
-    "[Tokens:check_token] Invalid token <",
-      token,">."
+      "[Tokens:check_token] Invalid token <",
+      token, ">."
   )
 
 end
@@ -92,7 +92,6 @@ local AttrGrp = {
   ["sources"] = 2,
   ["points"] = 2  -- not actually used
 }
-
 
 local BaseAttribute = {}
 function BaseAttribute:new(parent, source_path, is_static)
@@ -137,10 +136,10 @@ function BaseAttribute:new(parent, source_path, is_static)
     ]]
 
     local data = utils.get_attr_data(
-      self.parent.location,
-      self.path,
-      error,
-      self.static
+        self.parent.location,
+        self.path,
+        error,
+        self.static
     )  -- table
 
     self.class = self.class or data.class
@@ -170,7 +169,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     -- iterate through samples
     for _, sv in pairs(values_all) do
 
-      for i=#sv, 1, -1 do
+      for i = #sv, 1, -1 do
 
         if i == pcount * self.tupleSize then
           break
@@ -210,7 +209,7 @@ function BaseAttribute:new(parent, source_path, is_static)
     if self.length then
       local d = self.length / size
       if mathfloor(d) ~= d then
-        utils.logerror("[BaseAttribute][",self.path,"][set_tuple_size] Given \z
+        utils.logerror("[BaseAttribute][", self.path, "][set_tuple_size] Given \z
         size <", size, "> is not valid. (", self.length, "/size ~=int)")
       end
     end
@@ -292,7 +291,7 @@ function BaseAttribute:new(parent, source_path, is_static)
         smplbuf = smplbuf[utils.get_nearest_from_samples(smplbuf, nearest_sample)]
       end
 
-    -- else return a slice of the table
+      -- else return a slice of the table
     else
 
       -- first check if we need to process multiple time samples
@@ -302,7 +301,7 @@ function BaseAttribute:new(parent, source_path, is_static)
 
         buf = {}
         -- grouping usually vary between 1 and 16(matrices), so small loop.
-        for grpi=1, self.tupleSize do
+        for grpi = 1, self.tupleSize do
           buf[#buf + 1] = self.values[0.0][self.tupleSize * pid + grpi]
         end
 
@@ -313,7 +312,7 @@ function BaseAttribute:new(parent, source_path, is_static)
           smplbuf[0.0] = buf
         end
 
-      -- process time sample(s) for the given pid
+        -- process time sample(s) for the given pid
       else
 
 
@@ -326,11 +325,11 @@ function BaseAttribute:new(parent, source_path, is_static)
           smplbuf = {}
 
           buf = self.values[closest_smpl]
-          for grpi=1, self.tupleSize do
+          for grpi = 1, self.tupleSize do
             smplbuf[#smplbuf + 1] = buf[self.tupleSize * pid + grpi]
           end
 
-        -- process all time samples :
+          -- process all time samples :
         else
 
           smplbuf = {}
@@ -339,7 +338,7 @@ function BaseAttribute:new(parent, source_path, is_static)
 
             buf = {}
             -- grouping usually vary between 1 and 16(matrices), so small loop.
-            for grpi=1, self.tupleSize do
+            for grpi = 1, self.tupleSize do
               buf[#buf + 1] = processedvalue[self.tupleSize * pid + grpi]
             end
 
@@ -354,7 +353,7 @@ function BaseAttribute:new(parent, source_path, is_static)
       -- end if pid
     end
 
-    if raw==true then
+    if raw == true then
       return smplbuf
     else
       -- return as Katana DataAttribute, with the tuple size specified from grouping
@@ -413,7 +412,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
       a_string(string): string representing a valid Lua table.
     ]]
 
-    if not add_obj or add_obj =="" then
+    if not add_obj or add_obj == "" then
       return
     end
 
@@ -485,7 +484,7 @@ local function CommonAttribute(parent, source_path, is_static)
     end
 
     if new_size > self.tupleSize then
-      utils.logerror("[CommonAttribute][resize_tuple] new_size<",new_size,
+      utils.logerror("[CommonAttribute][resize_tuple] new_size<", new_size,
           "> can't be bigger than current tupleSize<", self.tupleSize, ">")
     end
 
@@ -496,10 +495,10 @@ local function CommonAttribute(parent, source_path, is_static)
 
     for smpl, oldvalues in pairs(invalues) do
       newvalues = {}
-      for i=0, self.length / self.tupleSize - 1 do
+      for i = 0, self.length / self.tupleSize - 1 do
         -- this will keep only the last item of the tuple
-        for tuple_i=1, new_size do
-          newvalues[#newvalues + 1] = oldvalues[i*self.tupleSize + tuple_i]
+        for tuple_i = 1, new_size do
+          newvalues[#newvalues + 1] = oldvalues[i * self.tupleSize + tuple_i]
         end
       end
       samples[smpl] = newvalues
@@ -554,9 +553,9 @@ local function SourcesAttribute(parent, source_path)
 
     local sources = self:__value_get(nil, true, 0.0)  -- table of values
 
-    for i=0, self.length / self.tupleSize - 1 do
+    for i = 0, self.length / self.tupleSize - 1 do
       -- index is the second item of the tuple
-      if index == sources[i*self.tupleSize + 2] then
+      if index == sources[i * self.tupleSize + 2] then
         return i
       end
 
@@ -614,7 +613,7 @@ local function SourcesAttribute(parent, source_path)
 
     local ti = self:_get_tuple_index_at_index(index)
     if ti then
-      return {v[ti * self.tupleSize + 1], index, v[ti * self.tupleSize + 3]}
+      return { v[ti * self.tupleSize + 1], index, v[ti * self.tupleSize + 3] }
     end
 
     -- if the function didn't return yet mean we didn't find an instance source
@@ -636,7 +635,7 @@ local function SourcesAttribute(parent, source_path)
     local sources = self:get_instance_source_data_at(pid)
     -- filter to only keep locations
     -- convert the associated instance index to the table index
-    for i=0, #sources / self.tupleSize - 1 do
+    for i = 0, #sources / self.tupleSize - 1 do
       -- storred index start counting at 0 so offset
       out[tonumber(sources[i * self.tupleSize + 2]) + 1] = sources[i * self.tupleSize + 1]
     end
@@ -665,7 +664,7 @@ local function SourcesAttribute(parent, source_path)
     -- we will add a third index to each tuple which correspond to the local
     -- attribute stored on the source location
     local new = {}
-    for i=0,  #values / 2 - 1 do
+    for i = 0, #values / 2 - 1 do
 
       new[#new + 1] = values[i * 2 + 1]  -- instance source location
       new[#new + 1] = values[i * 2 + 2]  -- index
@@ -686,16 +685,15 @@ local function SourcesAttribute(parent, source_path)
 
 end
 
-
 local PointCloudData = {}
 function PointCloudData:new(location)
 
   local attrs = {
-    ["__attrdata"]=false,
-    ["location"]=location,
-    ["common"]={},
-    ["arbitrary"]={},
-    ["points"]=false,
+    ["__attrdata"] = false,
+    ["location"] = location,
+    ["common"] = {},
+    ["arbitrary"] = {},
+    ["points"] = false,
     ["settings"] = {}
   }
 
@@ -741,9 +739,9 @@ function PointCloudData:new(location)
     ]]
 
     local data_points = utils.get_attr_value(
-      self.location,
-      "instancing.data.points.count",
-      error
+        self.location,
+        "instancing.data.points.count",
+        error
     ) -- table of 1 value
 
     if data_points[1] <= 0 then
@@ -771,7 +769,7 @@ function PointCloudData:new(location)
     end
 
     logger:debug(
-      "[PointCloudData][_build_points] Finished, found", self.points.count, "points."
+        "[PointCloudData][_build_points] Finished, found", self.points.count, "points."
     )
 
   end
@@ -806,11 +804,11 @@ function PointCloudData:new(location)
         error
     )
 
-    for i=0, #idata / AttrGrp.common - 1 do
+    for i = 0, #idata / AttrGrp.common - 1 do
 
-      path = idata[AttrGrp.common*i+1]
-      token = Tokens:check_token(idata[AttrGrp.common*i+2]) -- return without the "$" !
-      tuplesize = idata[AttrGrp.common*i+3]
+      path = idata[AttrGrp.common * i + 1]
+      token = Tokens:check_token(idata[AttrGrp.common * i + 2]) -- return without the "$" !
+      tuplesize = idata[AttrGrp.common * i + 3]
       if tuplesize == "" then
         tuplesize = -1
       else
@@ -851,15 +849,15 @@ function PointCloudData:new(location)
     end
 
     logger:debug(
-      "[PointCloudData][_build_common] Finished"
+        "[PointCloudData][_build_common] Finished"
     )
     -- end _build_common
   end
 
   function attrs:_build_arbitrary()
-      --[[
-    Build the <arbitrary> attribute.
-    ]]
+    --[[
+  Build the <arbitrary> attribute.
+  ]]
     local idata
 
     local target
@@ -879,23 +877,23 @@ function PointCloudData:new(location)
       return
     end
 
-    for i=0, #idata / AttrGrp.arbitrary - 1 do
+    for i = 0, #idata / AttrGrp.arbitrary - 1 do
 
-      path = idata[AttrGrp.arbitrary*i+1]
-      target = idata[AttrGrp.arbitrary*i+2]
-      tuplesize = idata[AttrGrp.arbitrary*i+3]
+      path = idata[AttrGrp.arbitrary * i + 1]
+      target = idata[AttrGrp.arbitrary * i + 2]
+      tuplesize = idata[AttrGrp.arbitrary * i + 3]
       if tuplesize == "" then
         tuplesize = -1
       else
         tuplesize = tonumber(tuplesize)
       end
-      additional = idata[AttrGrp.arbitrary*i+4]
+      additional = idata[AttrGrp.arbitrary * i + 4]
       attribute = ArbitraryAttribute(
           self,
           path,
           true
-          -- all arbitrary attributes are NOT multi-sampled by default
-          -- you need to specify it in additional if you want it
+      -- all arbitrary attributes are NOT multi-sampled by default
+      -- you need to specify it in additional if you want it
       )
       -- to execute before build() (set static)!
       attribute:set_additional_from_string(additional, target)
@@ -914,7 +912,7 @@ function PointCloudData:new(location)
     end
 
     logger:debug(
-      "[PointCloudData][_build_arbitrary] Finished"
+        "[PointCloudData][_build_arbitrary] Finished"
     )
 
     -- end _build_common
@@ -934,8 +932,8 @@ function PointCloudData:new(location)
       convert_func = utils.radian_to_degree
     else
       logger:debug(
-        "[PointCloudData][_convert_degree_radian] Aborted early with convert=",
-        self.settings.convert_degree_to_radian
+          "[PointCloudData][_convert_degree_radian] Aborted early with convert=",
+          self.settings.convert_degree_to_radian
       )
       return
     end
@@ -944,13 +942,13 @@ function PointCloudData:new(location)
     local attr
 
     -- convert the rotationX/Y/Z tokens
-    for _, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
+    for _, token in ipairs({ "rotationX", "rotationY", "rotationZ" }) do
 
       attr = self:get_common_by_name(token)
       sv = attr:get_value_at()
 
       for sample, values in pairs(sv) do
-        for i=0, #values / attr.tupleSize - 1 do
+        for i = 0, #values / attr.tupleSize - 1 do
           -- make sure the axis are not processed !
           values[i * attr.tupleSize + 1] = convert_func(
               values[i * attr.tupleSize + 1]
@@ -961,22 +959,22 @@ function PointCloudData:new(location)
     end
 
     logger:debug(
-      "[PointCloudData][_convert_degree_radian] Converted rotation axis"
+        "[PointCloudData][_convert_degree_radian] Converted rotation axis"
     )
 
     -- convert the rotation token
     sv = self.common.rotation:get_value_at()
     for _, values in pairs(sv) do
 
-      for i=1, #values do
+      for i = 1, #values do
         values[i] = convert_func(values[i])
       end
 
     end
 
     logger:debug(
-      "[PointCloudData][_convert_degree_radian] Finished with convert=",
-      self.settings.convert_degree_to_radian
+        "[PointCloudData][_convert_degree_radian] Finished with convert=",
+        self.settings.convert_degree_to_radian
     )
 
   end
@@ -999,11 +997,13 @@ function PointCloudData:new(location)
     local rz = {}
 
     local rall_data = {
-      { rx, {1.0, 0.0, 0.0} }, -- x
-      { ry, {0.0, 1.0, 0.0} }, -- y
-      { rz, {0.0, 0.0, 1.0} }  -- z
+      { rx, { 1.0, 0.0, 0.0 } }, -- x
+      { ry, { 0.0, 1.0, 0.0 } }, -- y
+      { rz, { 0.0, 0.0, 1.0 } }  -- z
     }
-    local rvalues local raxis local rbuffer
+    local rvalues
+    local raxis
+    local rbuffer
 
     -- /!\ Perfs
     -- iterate trough all rotation values with are assumed to be in x,y,z order
@@ -1018,11 +1018,11 @@ function PointCloudData:new(location)
 
         rbuffer = {}
 
-        for i=0, self.common.rotation.length / self.common.rotation.tupleSize - 1 do
+        for i = 0, self.common.rotation.length / self.common.rotation.tupleSize - 1 do
 
           -- rindex=[1,2,3] ; rdata=[{ {}, {1.0, 0.0, 0.0} }, ...]
 
-          rbuffer[#rbuffer + 1] = source_values[i*self.common.rotation.tupleSize + rindex]
+          rbuffer[#rbuffer + 1] = source_values[i * self.common.rotation.tupleSize + rindex]
           rbuffer[#rbuffer + 1] = raxis[1]
           rbuffer[#rbuffer + 1] = raxis[2]
           rbuffer[#rbuffer + 1] = raxis[3]
@@ -1036,12 +1036,12 @@ function PointCloudData:new(location)
 
     end
 
-    for i, token in ipairs({"rotationX", "rotationY", "rotationZ"}) do
+    for i, token in ipairs({ "rotationX", "rotationY", "rotationZ" }) do
 
       self["common"][token] = CommonAttribute(
-        self,
-        "function _convert_rotation_to_axis",
-        false
+          self,
+          "function _convert_rotation_to_axis",
+          false
       )
       self["common"][token]:set_tuple_size(4)
       self["common"][token]:set_data_class(self.common.rotation.class)
@@ -1075,12 +1075,12 @@ function PointCloudData:new(location)
           pcvalues[#pcvalues + 1] = i
         end
       end
-      pcvalues = {[0.0]=pcvalues}
+      pcvalues = { [0.0] = pcvalues }
 
       self["common"]["skip"] = CommonAttribute(
-        self,
-        "function _convert_skip_n_hide",
-        true
+          self,
+          "function _convert_skip_n_hide",
+          true
       )
       self["common"]["skip"]:set_tuple_size(1)
       self["common"]["skip"]:set_data_class(IntAttribute)
@@ -1089,7 +1089,7 @@ function PointCloudData:new(location)
     elseif self.common.skip then
 
       -- build a first time the hide table, all points are visible
-      for i=1, self.points.count do
+      for i = 1, self.points.count do
         pcvalues[i] = 0
       end
       -- iterate through point to skip and set them on <pcvalues>
@@ -1098,12 +1098,12 @@ function PointCloudData:new(location)
         pcvalues[to_hide + 1] = 1
       end
 
-      pcvalues = {[0.0]=pcvalues}
+      pcvalues = { [0.0] = pcvalues }
 
       self["common"]["hide"] = CommonAttribute(
-        self,
-        "function _convert_skip_n_hide",
-        true
+          self,
+          "function _convert_skip_n_hide",
+          true
       )
       self["common"]["hide"]:set_tuple_size(1)
       self["common"]["hide"]:set_data_class(IntAttribute)
@@ -1123,7 +1123,7 @@ function PointCloudData:new(location)
 
     if self.settings.convert_trs_to_matrix == 0 then
       logger:debug(
-        "[PointCloudData][_convert_to_matrix] Aborted. Setting not enable."
+          "[PointCloudData][_convert_to_matrix] Aborted. Setting not enable."
       )
       return
     end
@@ -1134,13 +1134,13 @@ function PointCloudData:new(location)
     local buf
     local samples_list
 
-    for _, token in ipairs({"translation", "rotationX", "scale"}) do
+    for _, token in ipairs({ "translation", "rotationX", "scale" }) do
 
       buf = self:get_common_by_name(token)
 
       if buf then
-        buf =  buf:get_value_at()
-        buf =  utils.get_samples_list_from(buf) -- type: table: {0.0, -0.25, ...}
+        buf = buf:get_value_at()
+        buf = utils.get_samples_list_from(buf) -- type: table: {0.0, -0.25, ...}
         if not samples_list or (#buf > #samples_list) then
           samples_list = buf
         end
@@ -1162,13 +1162,13 @@ function PointCloudData:new(location)
     local iv3d = Imath.V3d
 
     -- create samples based on the ones found above
-    for smplindex=1, #samples_list do
+    for smplindex = 1, #samples_list do
 
       -- build a new 4x4 matrix for each point
       matrices = {}
       sample = samples_list[smplindex]
 
-      for i=0, self.points.count - 1 do
+      for i = 0, self.points.count - 1 do
 
         -- translation
         m44 = im44d()
@@ -1182,7 +1182,7 @@ function PointCloudData:new(location)
         v = self:get_common_by_name("rotationX")
         if v then
           v = v:get_value_at(i, sample)
-          v = {utils.degree_to_radian(v[1])}
+          v = { utils.degree_to_radian(v[1]) }
           v[2] = utils.degree_to_radian(
               self:get_common_by_name("rotationY"):get_value_at(i, sample)[1]
           )
@@ -1265,7 +1265,7 @@ function PointCloudData:new(location)
     -- instance sources index must start at 0
     if self.common.sources:get_source_at("0") == nil then
       utils.logerror(
-        "[PointCloudData][_validate] No index 0 found on <common.sources> attribute."
+          "[PointCloudData][_validate] No index 0 found on <common.sources> attribute."
       )
     end
 
@@ -1297,9 +1297,9 @@ function PointCloudData:new(location)
     -- and reset the trs attributes
     if self.common.matrix and (
         self.common.translation or
-        self.common.rotation or
-        self.common.scale or
-        self.common.rotationX
+            self.common.rotation or
+            self.common.scale or
+            self.common.rotationX
     ) then
       logger:warning(
           "[PointCloudData][_validate] Source <", self.location,
@@ -1316,9 +1316,9 @@ function PointCloudData:new(location)
     if self.common.matrix and self.settings.convert_trs_to_matrix ~= 0 then
       self.settings.convert_trs_to_matrix = 0
       logger:warning(
-        "[PointCloudData][_validate] Source <", self.location,
-        "> declare a $matrix token but also ask to convert TRS to matrix. \z
-         <convert_trs_to_matrix> is as such disabled"
+          "[PointCloudData][_validate] Source <", self.location,
+          "> declare a $matrix token but also ask to convert TRS to matrix. \z
+           <convert_trs_to_matrix> is as such disabled"
       )
 
     end
@@ -1326,18 +1326,18 @@ function PointCloudData:new(location)
     -- verify that if one rotationX/Y/Z is declared, all other 2 also are
     if not (
         self.common.rotationX and
-        self.common.rotationY and
-        self.common.rotationZ
+            self.common.rotationY and
+            self.common.rotationZ
     ) then
       if (
           self.common.rotationX or
-          self.common.rotationY or
-          self.common.rotationZ
+              self.common.rotationY or
+              self.common.rotationZ
       ) then
         utils.logerror(
-          "[PointCloudData][_validate] Source <", self.location,
-          "> doesn't have all the <rotationX/Y/Z> tokens declared \z
-          (but declare currently at least one)."
+            "[PointCloudData][_validate] Source <", self.location,
+            "> doesn't have all the <rotationX/Y/Z> tokens declared \z
+            (but declare currently at least one)."
         )
       end
     end
@@ -1345,8 +1345,8 @@ function PointCloudData:new(location)
     -- verify that if $rotation is declared no rotationX/Y/Z is also declared
     if self.common.rotation and (
         self.common.rotationX or
-        self.common.rotationY or
-        self.common.rotationZ
+            self.common.rotationY or
+            self.common.rotationZ
     ) then
       logger:warning(
           "[PointCloudData][_validate] Source <", self.location,
@@ -1359,27 +1359,27 @@ function PointCloudData:new(location)
     if self.common.rotation then
       if self.common.rotation.tupleSize ~= 3 then
         utils.logerror(
-          "[PointCloudData][_validate] Source <", self.location,
-          "> $rotation token only accepts 3 as grouping, not ",
-          self.common.rotation.grouping
+            "[PointCloudData][_validate] Source <", self.location,
+            "> $rotation token only accepts 3 as grouping, not ",
+            self.common.rotation.grouping
         )
       end
     end
     if self.common.matrix then
       if self.common.matrix.tupleSize ~= 16 then
         utils.logerror(
-          "[PointCloudData][_validate] Source <", self.location,
-          "> $matrix token only accepts 16 as grouping, not ",
-          self.common.matrix.grouping
+            "[PointCloudData][_validate] Source <", self.location,
+            "> $matrix token only accepts 16 as grouping, not ",
+            self.common.matrix.grouping
         )
       end
     end
     if self.common.translation then
       if self.common.translation.tupleSize ~= 3 then
         utils.logerror(
-          "[PointCloudData][_validate] Source <", self.location,
-          "> $translation token only accepts 3 as grouping, not ",
-          self.common.translation.grouping
+            "[PointCloudData][_validate] Source <", self.location,
+            "> $translation token only accepts 3 as grouping, not ",
+            self.common.translation.grouping
         )
       end
     end

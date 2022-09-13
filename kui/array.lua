@@ -34,17 +34,16 @@ local logger = logging.getLogger(...)
 -- if the token doesnt have any value on point_data it will not be added.
 -- ! order is important !
 local token_target = {
-  { ["token"]="sources", ["target"]="geometry.instanceSource" },
-  { ["token"]="index", ["target"]="geometry.instanceIndex" },
-  { ["token"]="skip", ["target"]="geometry.instanceSkipIndex" },
-  { ["token"]="matrix", ["target"]="geometry.instanceMatrix" },
-  { ["token"]="translation", ["target"]="geometry.instanceTranslate" },
-  { ["token"]="rotationZ", ["target"]="geometry.instanceRotateZ" },
-  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
-  { ["token"]="rotationX", ["target"]="geometry.instanceRotateX" },
-  { ["token"]="scale", ["target"]="geometry.instanceScale" },
+  { ["token"] = "sources", ["target"] = "geometry.instanceSource" },
+  { ["token"] = "index", ["target"] = "geometry.instanceIndex" },
+  { ["token"] = "skip", ["target"] = "geometry.instanceSkipIndex" },
+  { ["token"] = "matrix", ["target"] = "geometry.instanceMatrix" },
+  { ["token"] = "translation", ["target"] = "geometry.instanceTranslate" },
+  { ["token"] = "rotationZ", ["target"] = "geometry.instanceRotateZ" },
+  { ["token"] = "rotationY", ["target"] = "geometry.instanceRotateY" },
+  { ["token"] = "rotationX", ["target"] = "geometry.instanceRotateX" },
+  { ["token"] = "scale", ["target"] = "geometry.instanceScale" },
 }
-
 
 local InstancingArray = {}
 function InstancingArray:new(point_data)
@@ -158,10 +157,9 @@ function _M_.run()
 
   stime = os.clock() - stime
   logger:info(
-      "[run] Finished in ",stime,"s for pointcloud <",u_pointcloud_sg,">."
+      "[run] Finished in ", stime, "s for pointcloud <", u_pointcloud_sg, ">."
   )
 
 end
-
 
 return _M_
