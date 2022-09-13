@@ -455,7 +455,7 @@ local function ArbitraryAttribute(parent, source_path, is_static)
 
     for ptarget, pdata in pairs(add_obj) do
       add_obj[ptarget] = nil
-      add_obj[utils:path_rel_to_abs(ptarget, source)] = pdata
+      add_obj[utils.path_rel_to_abs(ptarget, source)] = pdata
     end
 
     self.additional = add_obj

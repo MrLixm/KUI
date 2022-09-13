@@ -364,7 +364,7 @@ function _M_.get_samples_list_from(...)
 end
 
 
-function _M_:path_rel_to_abs(rel_path, source_path)
+function _M_.path_rel_to_abs(rel_path, source_path)
   --[[
   Args:
     rel_path(string): relative path starting (or not) with dot(s)
