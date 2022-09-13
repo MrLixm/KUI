@@ -1140,7 +1140,7 @@ function PointCloudData:new(location)
 
       if buf then
         buf =  buf:get_value_at()
-        buf =  utils:get_samples_list_from(buf) -- type: table: {0.0, -0.25, ...}
+        buf =  utils.get_samples_list_from(buf) -- type: table: {0.0, -0.25, ...}
         if not samples_list or (#buf > #samples_list) then
           samples_list = buf
         end

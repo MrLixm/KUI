@@ -329,7 +329,7 @@ function _M_.get_nearest_from_samples(samples, nearest)
 
 end
 
-function _M_:get_samples_list_from(...)
+function _M_.get_samples_list_from(...)
   --[[
   Args:
     ...(table(s) or nil): multiple tables of time samples
