@@ -22,7 +22,7 @@ local utils = require("kui.utils")
 -- don't print/log anything here, repeated times number of points.
 
 if Interface.AtRoot() then
-  local log_level = utils:get_user_attr("log_level", "info")[1]
+  local log_level = utils.get_user_attr("log_level", "info")[1]
   hier:set_logger_level(log_level)
   hier:run_root()
 
