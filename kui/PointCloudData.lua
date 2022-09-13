@@ -706,21 +706,21 @@ function PointCloudData:new(location)
 
     local setting
 
-    setting = utils:get_attr_value(
+    setting = utils.get_attr_value(
         self.location,
         "instancing.settings.convert_degree_to_radian",
         { 0 }
     ) -- type: table
     self.settings.convert_degree_to_radian = setting[1]
 
-    setting = utils:get_attr_value(
+    setting = utils.get_attr_value(
         self.location,
         "instancing.settings.convert_trs_to_matrix",
         { 0 }
     ) -- type: table
     self.settings.convert_trs_to_matrix = setting[1]
 
-    setting = utils:get_attr_value(
+    setting = utils.get_attr_value(
         self.location,
         "instancing.settings.enable_motion_blur",
         { 0 }
@@ -740,7 +740,7 @@ function PointCloudData:new(location)
     Set the self.points.count attribute based on the point token submitted.
     ]]
 
-    local data_points = utils:get_attr_value(
+    local data_points = utils.get_attr_value(
       self.location,
       "instancing.data.points.count",
       error
@@ -748,13 +748,13 @@ function PointCloudData:new(location)
 
     if data_points[1] <= 0 then
 
-      data_points = utils:get_attr_value(
+      data_points = utils.get_attr_value(
           self.location,
           "instancing.data.points.attr",
           error
       ) -- table of 2 values, first is attribute location, second is tupleSize
 
-      local points = utils:get_attr_value(
+      local points = utils.get_attr_value(
           self.location,
           data_points[1],
           error
@@ -800,7 +800,7 @@ function PointCloudData:new(location)
 
     -- 2. Build the other tokens --------------------------------------------
     -- get the attribute on the pc
-    idata = utils:get_attr_value(
+    idata = utils.get_attr_value(
         self.location,
         "instancing.data.common",
         error
@@ -869,7 +869,7 @@ function PointCloudData:new(location)
     local attribute
 
     -- get the attribute on the pc
-    idata = utils:get_attr_value(
+    idata = utils.get_attr_value(
         self.location,
         "instancing.data.arbitrary",
         false

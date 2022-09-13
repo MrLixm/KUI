@@ -197,7 +197,7 @@ function _M_.get_attr_data(location, attr_path, default, static)
 end
 
 
-function _M_:get_attr_value(location, attr_path, default)
+function _M_.get_attr_value(location, attr_path, default)
   --[[
   Get the given attribute value on the location.
   Queried attribute is not multi-sampled and only it's value is returned
