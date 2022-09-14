@@ -18,8 +18,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]
 local array = require("kui.array")
-local utils = require("kui.utils")
 
-local log_level = utils.get_user_attr("log_level", "info")[1]
-array:set_logger_level(log_level)
-array:run()
+array.run()
