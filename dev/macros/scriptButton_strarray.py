@@ -26,12 +26,7 @@ def get_data(sourcenode, path):
     array_size = asparam.getNumChildren()
     tuple_size = asparam.getTupleSize()
 
-    return {
-        "node": asnode,
-        "param": asparam,
-        "array": array_size,
-        "tuple": tuple_size
-    }
+    return {"node": asnode, "param": asparam, "array": array_size, "tuple": tuple_size}
 
 
 def update_node(node2update, logger):
@@ -43,10 +38,7 @@ def update_node(node2update, logger):
     # Get the original node and gather all the data we need for copy
     NodegraphAPI.SetAllSelectedNodes([node2update])
     source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()
-    katana_xml = NodegraphAPI.BuildNodesXmlIO(
-        source_node,
-        forcePersistant=True
-    )
+    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)
     source_node = source_node[0]  # type: NodegraphAPI.Node
     sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple
     sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port
