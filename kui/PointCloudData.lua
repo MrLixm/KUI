@@ -23,7 +23,7 @@ local logging = require("lllogger")
 local utils = require("kui.utils")
 
 local logger = logging.getLogger(...)
-logger.formatting:set_tbl_display_indexes(true)
+logger.formatter:set_tbl_display_indexes(true)
 
 -- we make some global functions local as this will improve performances in
 -- heavy loops. Note: this is not that useful for PointCloudData
