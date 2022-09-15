@@ -41,22 +41,19 @@ def stringToXmlString(source, opscript_mode=False):
         "<": "&lt;",
         ">": "&gt;",
         "&": "&amp;",
-        r"\\'": "&apos;",
+        r"\'": "&apos;",
+        "'": "&apos;",
         '"': "&quot;",
     }
     if opscript_mode:
         subtable[r"\\n"] = "&#0010;"
+        subtable[r"\n"] = "&#0010;"
 
     source = repr(source)
-    if opscript_mode:
-        source = source[1:][:-1]
+    source = source[1:][:-1]
 
-    out = source
-    for pattern, replace in subtable.items():
-        pattern = re.compile(pattern)
-        out = pattern.sub(replace, out)
-
-    return out
+    pattern = re.compile("({})".format("|".join(subtable)))
+    return pattern.sub(lambda match: subtable[match.group(0)], source)
 
 
 @dataclass
