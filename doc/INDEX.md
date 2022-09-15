@@ -26,7 +26,7 @@ then [CONFIG_NODE](CONFIG_NODE.md) to properly understand how KUI works.
 
 ## Installation
 
-Kui is shipped as a lua module ~~but also as an "all in one file" script~~.
+Kui is shipped as a lua module.
 
 > Kui also require the [lllogger](https://github.com/MrLixm/llloger) module to work.
 
@@ -48,7 +48,10 @@ Z:\config\katana
 then our variable will be
 
 ```batch
-set "LUA_PATH=%LUA_PATH%Z:\config\katana\?.lua"
+set "LUA_PATH=%LUA_PATH%;Z:\config\katana\?.lua"
+```
+```shell
+export LUA_PATH=$LUA_PATH:'/z/config/katana/?.lua'
 ```
 
 See [Lua | 8.1 – The require Function](https://www.lua.org/pil/8.1.html) for 
@@ -74,15 +77,6 @@ So we can simply do `local logging = require("lllogger")` (this  line is used in
 ---
 
 You can then have a look at the CONFIG pages for the next steps.
-
-### As one file script.
-
-TODO not built yet.
-
-Goal would be to remove the module dependencies and have the whole code
-in one big-ass lua file for whoever might need this special case.
-
-Comment on issue #8 if you need this special case.
 
 ## Utilisation
 

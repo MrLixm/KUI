@@ -273,7 +273,7 @@ instancing method.
 
 ### Hierarchical
 
-Use the file [opscript.kui.hierarchical.lua](../opscript.kui.hierarchical.lua)
+Use the file [opscript.kui.hierarchical.lua](../dev/macros/opscript.kui.hierarchical.lua)
 in the `script.lua` parameters.
 
 - `location` = target group location for instances 
@@ -299,7 +299,7 @@ Logging level to use. Availables are `debug, info, warning, error`.
 
 ### Array
 
-Use the file [opscript.kui.array.lua](../opscript.kui.array.lua)
+Use the file [opscript.kui.array.lua](../dev/macros/opscript.kui.array.lua)
 in the `script.lua` parameters.
 
 - `location` = target location for the instance array location (include its name)
@@ -322,3 +322,5 @@ Logging level to use. Availables are `debug, info, warning, error`.
 [![CULLING](https://img.shields.io/badge/culling-4f4f4f)](CULLING.md)
 [![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
 [![DEVELOPER](https://img.shields.io/badge/developer-4f4f4f)](DEVELOPER.md)
+
+
