@@ -52,7 +52,7 @@ class KuiInstancer(BaseCustomNode):
         hint = {"widget": "mapper", "options": {"array": 1.0, "hierarchical": 0.0}}
         p.setHintString(repr(hint))
 
-        p = userparam.createChildString("log_level", "info")
+        p = userparam.createChildString("log_level", "INFO")
         hint = {
             "widget": "popup",
             "help": (
@@ -60,7 +60,7 @@ class KuiInstancer(BaseCustomNode):
                 "few amounts of points (&lt; 100) else you might see your console "
                 "flooded with very long messages.</p>"
             ),
-            "options": ["debug", "info", "warning"],
+            "options": ["DEBUG", "INFO", "WARNING"],
         }
         p.setHintString(repr(hint))
 

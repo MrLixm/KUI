@@ -18,5 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]
 local array = require("kui.array")
+local utils = require("kui.utils")
+local logging = require("lllogger")
+
+local log_level = utils.get_user_attr("log_level", {"INFO"})[1]
+logging.getLogger("kui.array"):setLevel(logging.LEVELS[log_level])
 
 array.run()

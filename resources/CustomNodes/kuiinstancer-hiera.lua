@@ -19,8 +19,13 @@ limitations under the License.
 ]]
 local hier = require("kui.hierarchical")
 -- don't print/log anything here, repeated times number of points.
+local utils = require("kui.utils")
+local logging = require("lllogger")
+
 
 if Interface.AtRoot() then
+  local log_level = utils.get_user_attr("log_level", {"INFO"})[1]
+  logging.getLogger("kui.hierarchical"):setLevel(logging.LEVELS[log_level])
   hier.run_root()
 
 else
