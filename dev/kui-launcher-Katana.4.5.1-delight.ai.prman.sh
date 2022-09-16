@@ -21,6 +21,10 @@ export KATANA_RESOURCES="$PWD/resources"
 export LUA_PATH="$LUA_PATH;.\?.lua"
 export LUA_PATH="$LUA_PATH;..\llloger\?.lua" # ! external dependency
 
+export PYTHONPATH="../katananodling"
+export PYTHONPATH=$PYTHONPATH:"$PWD/../typing"
+export PYTHONPATH="$PYTHONPATH:$PWD/resources"
+
 # RENDER-ENGINES
 # --------------
 
