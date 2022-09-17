@@ -25,6 +25,8 @@ export PYTHONPATH="../katananodling"
 export PYTHONPATH=$PYTHONPATH:"$PWD/../typing"
 export PYTHONPATH="$PYTHONPATH:$PWD/resources"
 
+export KUI_DEV_MACRO_TARGET_DIR="$PWD/resources/Macros"
+
 # RENDER-ENGINES
 # --------------
 
