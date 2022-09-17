@@ -8,7 +8,6 @@ The script is modulated based on the name of the parameter.
 from Katana import (
     KatanaFile,
     NodegraphAPI,
-    UI4,
     Utils,
 )
 
