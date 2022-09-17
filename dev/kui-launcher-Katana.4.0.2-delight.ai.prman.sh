@@ -53,4 +53,11 @@ export U_MAYA_INSTALLATION="/C/Program Files/Autodesk/Maya2020"
 export U_XGEN_LOCATION="$U_MAYA_INSTALLATION/plug-ins/xgen"
 export PATH="$PATH:$U_XGEN_LOCATION:$U_XGEN_LOCATION/bin:$U_MAYA_INSTALLATION/bin"
 
-"$KATANA_HOME\bin\katanaBin.exe"
+if test -z "$1"
+then
+  "$KATANA_HOME\bin\katanaBin.exe"
+else
+  echo "Executing katana with --script=$1"
+  "$KATANA_HOME\bin\katanaBin.exe" --script $1
+fi
+
