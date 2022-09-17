@@ -9,8 +9,7 @@ solution for instancing based on point-cloud locations.
 
 ![cover](./doc/img/cover.jpg)
 
-Check the [master branch](https://github.com/MrLixm/KUI/tree/master) for the "production-ready" version.  
-Check the [dev branch](https://github.com/MrLixm/KUI/tree/dev) for the version with the latest updates.
+Check the [main branch](https://github.com/MrLixm/KUI/tree/main) for the "production-ready" version.  
 
 > New to Instancing ? I cover all the basic in this blog post :  
 > https://mrlixm.github.io/blog/katana_instancing
