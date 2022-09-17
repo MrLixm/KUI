@@ -35,10 +35,10 @@ TODO
 # Macros
 
 macros found in [`../resources/Macros`](../resources/Macros) are auto-generated
-by [`../dev/macros/macroGen.py`](../dev/macros/macroGen.py).
+by [`../dev/macroGen.py`](../dev/macroGen.py).
 
-The 2 .macro file in the folder are used as base template and are filled with
-the data from other file you can find next to them.
+`macroGen` need to be called from a Katana session and will use the `katananodling` custom nodes
+as a source to be converted to XML.
 
 # Tests
 
