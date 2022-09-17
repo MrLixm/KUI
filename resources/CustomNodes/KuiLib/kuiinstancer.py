@@ -5,14 +5,23 @@ from Katana import DrawingModule, NodegraphAPI
 from katananodling.entities import BaseCustomNode
 
 
-OPSCRIPT_ARRAY_PATH = os.path.join(os.path.dirname(__file__), "kuiinstancer-array.lua")
-OPSCRIPT_HIERA_PATH = os.path.join(os.path.dirname(__file__), "kuiinstancer-hiera.lua")
+OPSCRIPT_ARRAY_CONTENT = os.path.join(
+    os.path.dirname(__file__), "kuiinstancer-array.lua"
+)
+with open(OPSCRIPT_ARRAY_CONTENT) as file:
+    OPSCRIPT_ARRAY_CONTENT = str(file.read())
+
+OPSCRIPT_HIERA_CONTENT = os.path.join(
+    os.path.dirname(__file__), "kuiinstancer-hiera.lua"
+)
+with open(OPSCRIPT_HIERA_CONTENT) as file:
+    OPSCRIPT_HIERA_CONTENT = str(file.read())
 
 
 class KuiInstancer(BaseCustomNode):
 
     name = "KuiInstancer"
-    version = (0, 1, 0)
+    version = (0, 2, 0)
     color = BaseCustomNode.Colors.yellow
     description = 'Part of KUI. This node hold the "instancing" part OpScript that requires the pointcloud source to be configured in a defined way.'
     author = "<Liam Collod monsieurlixm@gmail.com>"
@@ -85,9 +94,7 @@ class KuiInstancer(BaseCustomNode):
         node_ops_hiera.getParameter("location").setExpression(
             "=^/user.instance_location"
         )
-        with open(OPSCRIPT_HIERA_PATH, "r") as file:
-            script = str(file.read())
-        node_ops_hiera.getParameter("script.lua").setValue(script, 0)
+        node_ops_hiera.getParameter("script.lua").setValue(OPSCRIPT_HIERA_CONTENT, 0)
         node_ops_hiera.getParameter("applyWhere").setValue("at specific location", 0)
 
         puser = node_ops_hiera.getParameters().createChildGroup(
@@ -103,9 +110,7 @@ class KuiInstancer(BaseCustomNode):
         node_ops_array = NodegraphAPI.CreateNode("OpScript", self)
         node_ops_array.setName("OpScript_array_kui0001")
         node_ops_array.getParameter("location").setExpression("=^/user.Data.array_name")
-        with open(OPSCRIPT_ARRAY_PATH, "r") as file:
-            script = str(file.read())
-        node_ops_array.getParameter("script.lua").setValue(script, 0)
+        node_ops_array.getParameter("script.lua").setValue(OPSCRIPT_ARRAY_CONTENT, 0)
         node_ops_array.getParameter("applyWhere").setValue("at specific location", 0)
 
         puser = node_ops_array.getParameters().createChildGroup(
@@ -145,6 +150,34 @@ class KuiInstancer(BaseCustomNode):
         posb = (pos[0] + 100, pos[1])
         NodegraphAPI.SetNodePosition(node_ops_hiera, posa)
         NodegraphAPI.SetNodePosition(node_ops_array, posb)
+
+        return
+
+    def upgrade(self):
+        def updateOpScript(identifier="hiera"):
+            """
+            Args:
+                identifier(str): "hiera" or "array"
+            """
+            node = None
+            attrset_nodes = NodegraphAPI.GetAllNodesByType("OpScript")
+            for attrset_node in attrset_nodes:
+                if attrset_node.getParent() != self:
+                    continue
+                if identifier in attrset_node.getName():
+                    node = attrset_node
+            assert node, 'Can\'t find OpScript node "{}" in {}'.format(identifier, self)
+            g = node.getParameter("script.lua")
+            if identifier == "hiera":
+                g.setValue(OPSCRIPT_HIERA_CONTENT, 0)
+            else:
+                g.setValue(OPSCRIPT_ARRAY_CONTENT, 0)
+            return
+
+        if str(self.about.version) == "0.1.0":
+
+            updateOpScript("hiera")
+            self.about.__update__()
 
         return
 

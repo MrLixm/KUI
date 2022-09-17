@@ -26,7 +26,7 @@ local logging = require("lllogger")
 if Interface.AtRoot() then
   local log_level = utils.get_user_attr("log_level", {"INFO"})[1]
   logging.getLogger("kui.hierarchical"):setLevel(logging.LEVELS[log_level])
-  hier.run_root()
+  hier.atroot()
 
 else
   -- don't print/log anything here too, repeated times number of points.
