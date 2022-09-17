@@ -54,7 +54,7 @@ def buildAttributeGroupParamContent(
     return
 
 
-class KuiSetup(BaseCustomNode):
+class KuiSetupNode(BaseCustomNode):
 
     name = "KuiSetup"
     version = (0, 2, 0)

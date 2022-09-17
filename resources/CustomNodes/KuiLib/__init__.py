@@ -1,2 +1,2 @@
-from .kuiinstancer import KuiInstancer
-from .kuisetup import KuiSetup
+from .kuiinstancer import KuiInstancerNode
+from .kuisetup import KuiSetupNode

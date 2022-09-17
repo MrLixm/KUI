@@ -18,7 +18,7 @@ with open(OPSCRIPT_HIERA_CONTENT) as file:
     OPSCRIPT_HIERA_CONTENT = str(file.read())
 
 
-class KuiInstancer(BaseCustomNode):
+class KuiInstancerNode(BaseCustomNode):
 
     name = "KuiInstancer"
     version = (0, 2, 0)
