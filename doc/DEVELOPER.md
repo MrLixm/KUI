@@ -50,6 +50,9 @@ to test motion-blur using a different pointcloud.
 To launch these scenes you can use the launchers located in
 [`../dev`](../dev) (they are made for Windows + git bash)
 
+All the test scenes need `katananodling` to be configured properly, else you will
+have corrupted nodes.
+
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)
 [![INDEX](https://img.shields.io/badge/index-4f4f4f?labelColor=blue)](INDEX.md)
