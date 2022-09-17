@@ -23,7 +23,7 @@ The first step is to read the [katananodling documentation](https://github.com/M
 to understand how it works and what you will need to register/create.
 
 Then the BaseCustomNodes subclass are available in the [../resources/CustomNodes](../resources/CustomNodes)
-directory, which is even ready to be registered as a node library.
+directory, which has a sub-directory `KuiLib` ready to be registered as a node library.
 
 You can have a look at the launchers in [../dev](../dev) to understand how
 I registered the library.

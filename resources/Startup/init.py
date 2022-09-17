@@ -14,7 +14,7 @@ def onStartupComplete(objectHash):
     from katananodling.loader import registerCallbacks
 
     # make sure "demolibrary" parent dir is in the PYTHONPATH
-    locations_to_register = ["CustomNodes"]
+    locations_to_register = ["KuiLib"]
 
     registerNodesFor(locations_to_register)
     registerCallbacks()
