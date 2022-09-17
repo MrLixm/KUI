@@ -16,6 +16,7 @@ class KuiInstancer(BaseCustomNode):
     color = BaseCustomNode.Colors.yellow
     description = 'Part of KUI. This node hold the "instancing" part OpScript that requires the pointcloud source to be configured in a defined way.'
     author = "<Liam Collod monsieurlixm@gmail.com>"
+    documentation = "https://github.com/MrLixm/KUI/blob/main/doc/CONFIG_NODE.md"
 
     def buildTopInterface(self):
 
