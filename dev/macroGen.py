@@ -7,7 +7,7 @@ import logging
 
 from Katana import NodegraphAPI
 
-import CustomNodes
+import KuiLib
 
 logger = logging.getLogger("macroGen-katanaScript")
 
@@ -19,18 +19,14 @@ def run(dry_run=False):
         target_dir
     ), "target dir from env variable doesn't exists on disk."
 
-    node = NodegraphAPI.CreateNode(
-        CustomNodes.KuiInstancer.name, NodegraphAPI.GetRootNode()
-    )
+    node = NodegraphAPI.CreateNode(KuiLib.KuiInstancer.name, NodegraphAPI.GetRootNode())
     xml = NodegraphAPI.BuildNodesXmlIO([node])
     path = os.path.join(target_dir, "KuiInstancerMacro.macro")
     if not dry_run:
         xml.write(path, outputStyles=None)
     logger.info("[run] Wrote {}".format(path))
 
-    node = NodegraphAPI.CreateNode(
-        CustomNodes.KuiSetup.name, NodegraphAPI.GetRootNode()
-    )
+    node = NodegraphAPI.CreateNode(KuiLib.KuiSetup.name, NodegraphAPI.GetRootNode())
     xml = NodegraphAPI.BuildNodesXmlIO([node])
     path = os.path.join(target_dir, "KuiSetupMacro.macro")
     if not dry_run:
