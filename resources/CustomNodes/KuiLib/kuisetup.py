@@ -57,7 +57,7 @@ def buildAttributeGroupParamContent(
 class KuiSetup(BaseCustomNode):
 
     name = "KuiSetup"
-    version = (0, 1, 0)
+    version = (0, 2, 0)
     color = None
     description = "Part of KUI setup. Configure attributes on the source (point-cloud) for the Instancer to pick-up."
     author = "<Liam Collod monsieurlixm@gmail.com>"
@@ -106,7 +106,9 @@ class KuiSetup(BaseCustomNode):
         g.resizeArray(1)
         node.getParameter("attributeName").setValue("instancing.data.points.count", 0)
         node.getParameter("attributeType").setValue("integer", 0)
-        node.getParameter("numberValue").setExpression("=^/user.points.count_manual")
+        g = node.getParameter("numberValue")
+        g.insertArrayElement(0).setExpression("=^/user.points.count_manual")
+        g.resizeArray(1)
         self.wireInsertNodes([node], node_spacing)
 
         node = NodegraphAPI.CreateNode("AttributeSet", self)
@@ -395,6 +397,29 @@ Supported tokens:
 </tt>
 </div>""",
         )
+
+    def upgrade(self):
+
+        if str(self.about.version) == "0.1.0":
+
+            node = None
+            attrset_nodes = NodegraphAPI.GetAllNodesByType("AttributeSet")
+            for attrset_node in attrset_nodes:
+                if attrset_node.getParent() != self:
+                    continue
+                if "points_count" in attrset_node.getName():
+                    node = attrset_node
+            assert node, 'Can\'t find AttributeSet node "points_count" in {}'.format(
+                self
+            )
+            g = node.getParameter("numberValue")
+            g.setExpression("", False)
+            g.insertArrayElement(0).setExpression("=^/user.points.count_manual")
+            g.resizeArray(1)
+
+            self.about.__update__()
+
+        return
 
     def _build(self):
 
