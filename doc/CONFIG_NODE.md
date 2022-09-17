@@ -8,14 +8,35 @@
 [![API](https://img.shields.io/badge/api-4f4f4f)](API.md)
 [![DEVELOPER](https://img.shields.io/badge/developer-4f4f4f)](DEVELOPER.md)
 
+To avoid you creating all the node setup, KUI ship with some pre-made ones.
+
 # Installation
 
-You can find at the root of this repo, 2 `.xml` files that can be used in Katana
-to quickly create a node with everything configured for you.
-You can open it with any text editor, copy it's content, and paste it into
-your Katana Nodegraph. As simple as that.
+## With katananodling (recommended)
 
-You can then, in Katana, generate a macro for easier re-use.
+[katananodling](https://github.com/MrLixm/katananodling) is a python package
+developed by me too, that allow to register custom node in Katana described
+by a python file (as you would do with a SuperTool). This made the nodes very
+easy to maintain and upgrade in a version-controled pipeline.
+
+The first step is to read the [katananodling documentation](https://github.com/MrLixm/katananodling/blob/main/doc/INDEX.md)
+to understand how it works and what you will need to register/create.
+
+Then the BaseCustomNodes subclass are available in the [../resources/CustomNodes](../resources/CustomNodes)
+directory, which is even ready to be registered as a node library.
+
+You can have a look at the launchers in [../dev](../dev) to understand how
+I registered the library.
+
+> Main advantage is that CustomNodes have an upgrade macro, so opening an old
+> scene with a KUI node will not be an issue and the node will be upgraded according
+> to the instruction in its upgrade() method.
+
+## With Macros
+
+A more traditional way is just to use the macros provided in the [../resources/Macros](../resources/Macros)
+directory.
+
 
 # Use
 

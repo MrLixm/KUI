@@ -15,8 +15,8 @@ Welcome on the KUI module's documentation.
 
 Kui is meant to be used with an OpScript node.
 
-You will first need to install the script (see under), then you will need
-to choose how you want to use the module :
+You will first need to register the lua module, then you will need
+to choose how you want to import the module in Katana:
 
 - Use the pre-built nodes for fast and easy setup. See [CONFIG_NODE](CONFIG_NODE.md).
 - Manually config the scene. See [CONFIG_MANUAL](CONFIG_MANUAL.md).
