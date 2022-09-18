@@ -34,6 +34,22 @@ See [DEVELOPER.md](DEVELOPER.md) for modifications documentation.
 
 > Utility functions common to all modules.
 
+# Usage
+
+You can only import kui as a "package" :
+
+```lua
+local kui = require("kui")
+kui.array.run()
+```
+
+Or import manually the module that interest you :
+
+```lua
+local array = require("kui.array")
+array.run()
+```
+
 
 # ![module](https://img.shields.io/badge/module-5663B3) array.lua
 
