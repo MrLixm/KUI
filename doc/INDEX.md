@@ -97,7 +97,7 @@ The code use Lua tables that cannot store more than 2^27 (134 million) values.
 I hope you never reach this amount of values. (something like 44mi points
 with XYZ values and 8,3 mi points for a Matrix attribute). A fix would be
 to instead use Katana's `Array` attribute class internally. Which is already
-logged as issue #3
+logged as issue https://github.com/MrLixm/KUI/issues/3
 
 
 # Performances

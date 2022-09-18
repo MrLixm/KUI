@@ -181,7 +181,7 @@ The `$rotation` token, if specified, take over the priority on these one.
 
 #### column 4
 
-> ⚠ You must know that this parameter has a potential security flaw as everything
+> **Warning** You must know that this parameter has a potential security flaw as everything
 inside is compiled to Lua code using `loadstring("return "..content)` where
 `content` is the string submitted.
 
@@ -273,7 +273,7 @@ instancing method.
 
 ### Hierarchical
 
-Use the file [opscript.kui.hierarchical.lua](../dev/macros/opscript.kui.hierarchical.lua)
+Use the file [kuiinstancer-hiera.lua](../resources/CustomNodes/KuiLib/kuiinstancer-hiera.lua)
 in the `script.lua` parameters.
 
 - `location` = target group location for instances 
@@ -295,11 +295,11 @@ source to pick.
 
 #### `user.log_level`
 
-Logging level to use. Availables are `debug, info, warning, error`.
+Logging level to use. Availables are `DEBUG, INFO, WARNING, ERROR`.
 
 ### Array
 
-Use the file [opscript.kui.array.lua](../dev/macros/opscript.kui.array.lua)
+Use the file [kuiinstancer-array.lua](../resources/CustomNodes/KuiLib/kuiinstancer-array.lua)
 in the `script.lua` parameters.
 
 - `location` = target location for the instance array location (include its name)
@@ -311,7 +311,7 @@ Scene graph location of the source (pointcloud)
 
 #### `user.log_level`
 
-Logging level to use. Availables are `debug, info, warning, error`.
+Logging level to use. Availables are `DEBUG, INFO, WARNING, ERROR`.
 
 
 ---
