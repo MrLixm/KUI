@@ -5,36 +5,51 @@ Python 2+
 This snippet is used on KUI Setup node ScriptButtons parameters.
 The script is modulated based on the name of the parameter.
 """
+import logging
+
 from Katana import (
     KatanaFile,
     NodegraphAPI,
-    UI4,
     Utils,
 )
 
+logger = logging.getLogger("ScriptButton.KUI.ArrayUtil")
 
-def get_data(sourcenode, path):
+
+def getTeleparamData(sourcenode, path):
+    """
+    Retrieve some data about the actual parameter referenced by the teleparam at the given
+    path on the givenr sourcenode.
+
+    Args:
+        sourcenode(NodegraphAPI.Node):
+        path(str): paramater path, with a dot as seprator
+
+    Returns:
+        dict:
+            with 4 keys
+    """
 
     teleparam = sourcenode.getParameter(path)
     teleparam_value = teleparam.getValue(0)  # "nodeName.paramName"
-
-    asnode, asparam = teleparam_value.split(".", 1)
-    asnode = NodegraphAPI.GetNode(asnode)
-    asparam = asnode.getParameter(asparam)  # string array parameter
+    # we know the teleparamater always point to an AttributeSet node
+    refnode, refparam = teleparam_value.split(".", 1)
+    refnode = NodegraphAPI.GetNode(refnode)
+    refparam = refnode.getParameter(refparam)  # string array parameter
 
     # get current parameter structure
-    array_size = asparam.getNumChildren()
-    tuple_size = asparam.getTupleSize()
+    array_size = refparam.getNumChildren()
+    tuple_size = refparam.getTupleSize()
 
     return {
-        "node": asnode,
-        "param": asparam,
+        "node": refnode,
+        "param": refparam,
         "array": array_size,
-        "tuple": tuple_size
+        "tuple": tuple_size,
     }
 
 
-def update_node(node2update, logger):
+def updateNodeInterface(node2update):
     """
     Because I didn't find any way to force an UI refresh of a node parameter
     we will "cut and paste" the node to kind of force refresh it.
@@ -43,10 +58,7 @@ def update_node(node2update, logger):
     # Get the original node and gather all the data we need for copy
     NodegraphAPI.SetAllSelectedNodes([node2update])
     source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()
-    katana_xml = NodegraphAPI.BuildNodesXmlIO(
-        source_node,
-        forcePersistant=True
-    )
+    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)
     source_node = source_node[0]  # type: NodegraphAPI.Node
     sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple
     sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port
@@ -69,10 +81,9 @@ def update_node(node2update, logger):
         port.connect(new_node.getOutputPortByIndex(0))
 
     NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)
-    print(
-        "[ButtonScript][{}][update_node] Finished.\n"
-        "Previous node was deleted and replace by the new node <{}>."
-        "".format(logger, new_node)
+    logger.info(
+        "[update_node] Finished.\n"
+        "Previous node was deleted and replace by the new node {}.".format(new_node)
     )
     return
 
@@ -85,41 +96,40 @@ def run():
     # ex: parameter.getName() = "add_row_arbitrary"
     context = parameter.getName().rsplit("_", 1)[-1]
     op = parameter.getName().rsplit("_", 1)[0]
-    name = "KUIs.{}.{}".format(context, op)
 
-    data = get_data(node, "user.{}.array".format(context))
-    param = data["param"]
+    data = getTeleparamData(node, "user.{}.array".format(context))
+    param_array = data["param"]
     array_size = data["array"]
     tuple_size = data["tuple"]
 
     if op == "add_row":
 
-        param.resizeArray(array_size + tuple_size)
+        param_array.resizeArray(array_size + tuple_size)
 
         if context == "sources":
-            param.getChildByIndex(array_size + 0).setValue("SOURCE LOCATION", 0)
-            param.getChildByIndex(array_size + 1).setValue("SOURCE INDEX", 0)
+            param_array.getChildByIndex(array_size + 0).setValue("SOURCE LOCATION", 0)
+            param_array.getChildByIndex(array_size + 1).setValue("SOURCE INDEX", 0)
 
         elif context == "common":
             tokenparam = node.getParameter("user.common.token2add")
             tokenparam_value = tokenparam.getValue(0)  # type: str
-            param.getChildByIndex(array_size + 0).setValue("ATTRIBUTE", 0)
-            param.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)
-            param.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
+            param_array.getChildByIndex(array_size + 0).setValue("ATTRIBUTE", 0)
+            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)
+            param_array.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
 
         elif context == "arbitrary":
-            param.getChildByIndex(array_size + 0).setValue("SOURCE", 0)
-            param.getChildByIndex(array_size + 1).setValue("TARGET", 0)
-            param.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
-            param.getChildByIndex(array_size + 3).setValue("", 0)
+            param_array.getChildByIndex(array_size + 0).setValue("SOURCE", 0)
+            param_array.getChildByIndex(array_size + 1).setValue("TARGET", 0)
+            param_array.getChildByIndex(array_size + 2).setValue("GROUPING", 0)
+            param_array.getChildByIndex(array_size + 3).setValue("", 0)
 
     elif op == "remove_row":
-        param.resizeArray(array_size - tuple_size)
+        param_array.resizeArray(array_size - tuple_size)
 
     # this is executed no matter what button the user clicked
-    update_node(node, name)
+    updateNodeInterface(node)
 
-    print("[ScriptButton][{}][run] Finished.".format(name))
+    logger.info("[run] Finished for contex={}, op={}".format(context, op))
     return
 
 

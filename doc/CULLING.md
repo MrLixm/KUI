@@ -12,8 +12,9 @@
 One of Kui's module.
 Used on point-cloud location to "remove" points using meshs locations.
 
-> ⚠ This module is not completed yet, do not use. ⚠
-> Follow issue #1 for updates.
+> **Warning** This module is not completed yet, do not use.
+>
+> Follow issue https://github.com/MrLixm/KUI/issues/1 for updates.
 
 # Features
 

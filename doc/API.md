@@ -34,31 +34,29 @@ See [DEVELOPER.md](DEVELOPER.md) for modifications documentation.
 
 > Utility functions common to all modules.
 
+# Usage
+
+You can only import kui as a "package" :
+
+```lua
+local kui = require("kui")
+kui.array.run()
+```
+
+Or import manually the module that interest you :
+
+```lua
+local array = require("kui.array")
+array.run()
+```
+
 
 # ![module](https://img.shields.io/badge/module-5663B3) array.lua
 
-## ![method](https://img.shields.io/badge/method-4f4f4f) array:run
+## ![method](https://img.shields.io/badge/method-4f4f4f) array.run
 
 Read the user argument and create an instance-array location.
 
-## ![method](https://img.shields.io/badge/method-4f4f4f) array:set_logger_level
-
-Change the logger level used for the module, and it's dependencies.
-Default is `debug`.
-
-```
-Args :
-    level(str): 
-        log level to set
-``` 
-
-## ![attribute](https://img.shields.io/badge/attribute-4f4f4f) array.logger
-
-```
-table: 
-    The llloger instance being used for this module.
-    See llloger module documentation.
-``` 
 
 # ![module](https://img.shields.io/badge/module-5663B3) boxCulling.lua
 
@@ -72,35 +70,17 @@ the current location (at root), we create all the children location and store th
 And then the part where the OpScript is running on every child created, where
 we just set its attributes (not at root). 
 
-## ![method](https://img.shields.io/badge/method-4f4f4f) hierarchical:run_root
+## ![method](https://img.shields.io/badge/method-4f4f4f) hierarchical.atroot
 
 Read the user argument and pre-create the hierarchical children location.
 95% of the work is done here. To run first.
 
-## ![method](https://img.shields.io/badge/method-4f4f4f) hierarchical:run_not_root
+## ![method](https://img.shields.io/badge/method-4f4f4f) hierarchical.run_not_root
 
 For each child created, just set its attributes defined in the previous method
 run_root(). It is not recommened to log anything here as this method
 will be repeated times the number of child created.
 
-## ![method](https://img.shields.io/badge/method-4f4f4f) hierarchical:set_logger_level
-
-Change the logger level used for the module, and it's dependencies.
-Default is `debug`.
-
-```
-Args :
-    level(str): 
-        log level to set
-``` 
-
-## ![attribute](https://img.shields.io/badge/attribute-4f4f4f) hierarchical.logger
-
-```
-table: 
-    The llloger instance being used for this module.
-    See llloger module documentation.
-``` 
 
 # ![module](https://img.shields.io/badge/module-5663B3) PointCloudData.lua
 
@@ -116,25 +96,6 @@ Args :
 Returns:
     table:
         PointCloudData class instance for the given location
-``` 
-
-## ![method](https://img.shields.io/badge/method-4f4f4f) PointCloudData:set_logger_level
-
-Change the logger level used for the module, and it's dependencies.
-Default is `debug`.
-
-```
-Args :
-    level(str): 
-        log level to set
-``` 
-
-## ![attribute](https://img.shields.io/badge/attribute-4f4f4f) PointCloudData.logger
-
-```
-table: 
-    The llloger instance being used for this module.
-    See llloger module documentation.
 ``` 
 
 ## ![class](https://img.shields.io/badge/class-6F5ADC) PointCloudData.PointCloudData

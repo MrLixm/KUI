@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "kui"
+version = "3.0.0"
+description = "Katana OpScript for flexible instancing setup"
+authors = ["Liam Collod <lcollod@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["vfx", "katana", "opscript", "instancing"]
+
+[tool.poetry.dependencies]
+python = ">3.7"
+katananodling = { git = "https://github.com/MrLixm/katananodling.git", branch = "main" }
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+
+[tool.pydocstyle]
+convention = "google"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,6 +1,6 @@
 {
     "name": "kui",
-    "version": "2.0.0-build.37",
+    "version": "3.0.0",
     "author": "Liam Collod",
     "license": "Apache 2.0",
     "description": "Katana OpScript for flexible instancing setup",
@@ -12,7 +12,7 @@
         "instance"
     ],
     "dependencies": {
-        "lllogger": ">=1.0.0"
+        "lllogger": "2"
     },
     "engines": {
         "lua": "~5.1.5"

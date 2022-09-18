@@ -1,0 +1,304 @@
+<katana release="4.5v1" version="4.5.1.000008">
+  <node name="__SAVE_exportedNodes" type="Group">
+    <node baseType="CustomNode" name="KuiSetup1" ns_basicDisplay="1" ns_fromContext="legacy" ns_iconName="" type="KuiSetup" x="0" y="0">
+      <port name="in" type="in"/>
+      <port name="out" type="out"/>
+      <group_parameter name="KuiSetup1">
+        <group_parameter hints="{&apos;hideTitle&apos;: True}" name="user">
+          <string_parameter hints="{&apos;widget&apos;: &apos;scenegraphLocation&apos;}" name="pointcloud" value="/root/world/geo/asset"/>
+          <group_parameter name="display">
+            <number_parameter name="point_width" value="1"/>
+            <number_parameter hints="{&apos;widget&apos;: &apos;boolean&apos;}" name="visible_in_render" value="0"/>
+          </group_parameter>
+          <group_parameter name="settings">
+            <number_parameter hints="{&apos;widget&apos;: &apos;mapper&apos;, &apos;help&apos;: &apos;Applied on all rotations attributes.\nHappens before the matrix conversion (if enabled)&apos;, &apos;options&apos;: {&apos;degree2radian&apos;: 1.0, &apos;radian2degree&apos;: -1.0, &apos;disable&apos;: 0.0}, &apos;label&apos;: &apos;Degree to Radian Conversion&apos;}" name="convert_degree_to_radian" value="0"/>
+            <number_parameter hints="{&apos;widget&apos;: &apos;boolean&apos;, &apos;help&apos;: &apos;If enabled, the translation, rotationX/Y/Z and scale attributes are converted to a 4x4 identity matrix (the matrix attribute.). Make sure at least one of the TRS attribute is specified.\n&apos;, &apos;label&apos;: &apos;TRS to Matrix Conversion&apos;}" name="convert_trs_to_matrix" value="1"/>
+            <number_parameter hints="{&apos;widget&apos;: &apos;boolean&apos;, &apos;help&apos;: &apos;Faster if off, but time samples are not processed which disable motion blur. (&quot;Faster&quot; is vague so test a before/after)&apos;, &apos;label&apos;: &apos;Motion Blur&apos;}" name="enable_motion_blur" value="1"/>
+          </group_parameter>
+          <group_parameter hints="{&apos;label&apos;: &apos;#points&apos;}" name="points">
+            <stringarray_parameter hints="{&apos;conditionalVisOps&apos;: {&apos;conditionalVisOp&apos;: &apos;lessThanOrEqualTo&apos;, &apos;conditionalVisPath&apos;: &apos;../count_manual&apos;, &apos;conditionalVisValue&apos;: 0}, &apos;help&apos;: &apos;&lt;p&gt;First index is the path to the attribute to compute the number of points from.&lt;/p&gt;&lt;p&gt;Second index is the tupleSize.&lt;/p&gt;&lt;p&gt;Final formula is : &lt;code&gt;#attr / tupleSize&lt;/code&gt;&lt;/p&gt;&apos;}" name="attr" size="2" tupleSize="2">
+              <string_parameter name="i0" value="geometry.point.P"/>
+              <string_parameter name="i1" value="3"/>
+            </stringarray_parameter>
+            <number_parameter hints="{&apos;int&apos;: True, &apos;help&apos;: &quot;&lt;p&gt;If at 0 (disabled), use the above parameter attr.&lt;/p&gt;&lt;p&gt;Else this can be used to reduce the number of points/instances by giving a smaller count than what should actually be. BUt don&apos;t try to give a higher count though.&lt;/p&gt;&quot;}" name="count_manual" value="0"/>
+          </group_parameter>
+          <group_parameter hints="{&apos;label&apos;: &apos;#sources&apos;}" name="sources">
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Add New Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="add_row_sources" value=""/>
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Remove Last Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="remove_row_sources" value=""/>
+            <string_parameter expression="getParam(&quot;AttributeSet_sources_kuis0012.stringValue&quot;).param.getFullName()" hints="{&apos;widget&apos;: &apos;teleparam&apos;, &apos;help&apos;: &apos;&apos;}" name="array"/>
+          </group_parameter>
+          <group_parameter hints="{&apos;label&apos;: &apos;#common&apos;}" name="common">
+            <string_parameter hints="{&apos;widget&apos;: &apos;popup&apos;, &apos;options&apos;: [&apos;$index&apos;, &apos;$skip&apos;, &apos;$hide&apos;, &apos;$matrix&apos;, &apos;$scale&apos;, &apos;$translation&apos;, &apos;$rotation&apos;, &apos;$rotationX&apos;, &apos;$rotationY&apos;, &apos;$rotationZ&apos;], &apos;label&apos;: &apos;Token to Add&apos;}" name="token2add" value="$rotation"/>
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Add New Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="add_row_common" value=""/>
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Remove Last Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="remove_row_common" value=""/>
+            <string_parameter expression="getParam(&quot;AttributeSet_common_kuis0017.stringValue&quot;).param.getFullName()" hints="{&apos;widget&apos;: &apos;teleparam&apos;, &apos;help&apos;: &apos;\n[0*n] = attribute path relative to the source.&lt;br&gt;\n[1*n] = token to specify what kind of data [0] corresponds to.&lt;br&gt;\n[2*n] = value grouping : how much value belongs to an individual point.&lt;br&gt;\n&lt;br&gt;\nSupported tokens:\n\n&lt;ul&gt;\n&lt;li&gt;$points&lt;/li&gt;\n&lt;li&gt;$index&lt;/li&gt;\n&lt;li&gt;$skip&lt;/li&gt;\n&lt;li&gt;$hide&lt;/li&gt;\n&lt;li&gt;$matrix&lt;/li&gt;\n&lt;li&gt;$scale&lt;/li&gt;\n&lt;li&gt;$translation&lt;/li&gt;\n&lt;li&gt;$rotation&lt;/li&gt;\n&lt;li&gt;$rotationX&lt;/li&gt;\n&lt;li&gt;$rotationY&lt;/li&gt;\n&lt;li&gt;$rotationZ&lt;/li&gt;\n&lt;/ul&gt;&apos;}" name="array"/>
+          </group_parameter>
+          <group_parameter hints="{&apos;label&apos;: &apos;#arbitrary&apos;}" name="arbitrary">
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Add New Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="add_row_arbitrary" value=""/>
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;buttonText&apos;: &apos;Remove Last Row&apos;, &apos;scriptText&apos;: &apos;&quot;&quot;&quot;\nversion=7\nPython 2+\n\nThis snippet is used on KUI Setup node ScriptButtons parameters.\nThe script is modulated based on the name of the parameter.\n&quot;&quot;&quot;\nimport logging\n\nfrom Katana import (\n    KatanaFile,\n    NodegraphAPI,\n    Utils,\n)\n\nlogger = logging.getLogger(&quot;ScriptButton.KUI.ArrayUtil&quot;)\n\n\ndef getTeleparamData(sourcenode, path):\n    &quot;&quot;&quot;\n    Retrieve some data about the actual parameter referenced by the teleparam at the given\n    path on the givenr sourcenode.\n\n    Args:\n        sourcenode(NodegraphAPI.Node):\n        path(str): paramater path, with a dot as seprator\n\n    Returns:\n        dict:\n            with 4 keys\n    &quot;&quot;&quot;\n\n    teleparam = sourcenode.getParameter(path)\n    teleparam_value = teleparam.getValue(0)  # &quot;nodeName.paramName&quot;\n    # we know the teleparamater always point to an AttributeSet node\n    refnode, refparam = teleparam_value.split(&quot;.&quot;, 1)\n    refnode = NodegraphAPI.GetNode(refnode)\n    refparam = refnode.getParameter(refparam)  # string array parameter\n\n    # get current parameter structure\n    array_size = refparam.getNumChildren()\n    tuple_size = refparam.getTupleSize()\n\n    return {\n        &quot;node&quot;: refnode,\n        &quot;param&quot;: refparam,\n        &quot;array&quot;: array_size,\n        &quot;tuple&quot;: tuple_size,\n    }\n\n\ndef updateNodeInterface(node2update):\n    &quot;&quot;&quot;\n    Because I didn\&apos;t find any way to force an UI refresh of a node parameter\n    we will &quot;cut and paste&quot; the node to kind of force refresh it.\n    &quot;&quot;&quot;\n\n    # Get the original node and gather all the data we need for copy\n    NodegraphAPI.SetAllSelectedNodes([node2update])\n    source_node, parent_node = NodegraphAPI.GetAllSelectedNodesAndParent()\n    katana_xml = NodegraphAPI.BuildNodesXmlIO(source_node, forcePersistant=True)\n    source_node = source_node[0]  # type: NodegraphAPI.Node\n    sn_pos = NodegraphAPI.GetNodePosition(source_node)  # type: tuple\n    sn_port_in = source_node.getInputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_in = sn_port_in.getConnectedPort(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = source_node.getOutputPortByIndex(0)  # type: NodegraphAPI.Port\n    sn_port_out_list = sn_port_out_list.getConnectedPorts()  # type:list\n\n    # We delete the previous node before creating the new one\n    source_node.delete()\n    del source_node\n    Utils.EventModule.ProcessEvents()  # make sure the delete is processed\n\n    # Now create the new node\n    new_node = KatanaFile.Paste(katana_xml, parent_node)  # type: list\n    new_node = new_node[0]  # type: NodegraphAPI.Node\n    NodegraphAPI.SetNodePosition(new_node, sn_pos)\n    if sn_port_in:\n        sn_port_in.connect(new_node.getInputPortByIndex(0))\n    for port in sn_port_out_list:\n        port.connect(new_node.getOutputPortByIndex(0))\n\n    NodegraphAPI.SetNodeEdited(new_node, True, exclusive=True)\n    logger.info(\n        &quot;[update_node] Finished.\\n&quot;\n        &quot;Previous node was deleted and replace by the new node {}.&quot;.format(new_node)\n    )\n    return\n\n\ndef run():\n    &quot;&quot;&quot;\n    This function runs for all buttons.\n    &quot;&quot;&quot;\n\n    # ex: parameter.getName() = &quot;add_row_arbitrary&quot;\n    context = parameter.getName().rsplit(&quot;_&quot;, 1)[-1]\n    op = parameter.getName().rsplit(&quot;_&quot;, 1)[0]\n\n    data = getTeleparamData(node, &quot;user.{}.array&quot;.format(context))\n    param_array = data[&quot;param&quot;]\n    array_size = data[&quot;array&quot;]\n    tuple_size = data[&quot;tuple&quot;]\n\n    if op == &quot;add_row&quot;:\n\n        param_array.resizeArray(array_size + tuple_size)\n\n        if context == &quot;sources&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE LOCATION&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;SOURCE INDEX&quot;, 0)\n\n        elif context == &quot;common&quot;:\n            tokenparam = node.getParameter(&quot;user.common.token2add&quot;)\n            tokenparam_value = tokenparam.getValue(0)  # type: str\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;ATTRIBUTE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(tokenparam_value, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n\n        elif context == &quot;arbitrary&quot;:\n            param_array.getChildByIndex(array_size + 0).setValue(&quot;SOURCE&quot;, 0)\n            param_array.getChildByIndex(array_size + 1).setValue(&quot;TARGET&quot;, 0)\n            param_array.getChildByIndex(array_size + 2).setValue(&quot;GROUPING&quot;, 0)\n            param_array.getChildByIndex(array_size + 3).setValue(&quot;&quot;, 0)\n\n    elif op == &quot;remove_row&quot;:\n        param_array.resizeArray(array_size - tuple_size)\n\n    # this is executed no matter what button the user clicked\n    updateNodeInterface(node)\n\n    logger.info(&quot;[run] Finished for contex={}, op={}&quot;.format(context, op))\n    return\n\n\nrun()\n&apos;}" name="remove_row_arbitrary" value=""/>
+            <string_parameter expression="getParam(&quot;AttributeSet_arbitrary_kuis0016.stringValue&quot;).param.getFullName()" hints="{&apos;widget&apos;: &apos;teleparam&apos;, &apos;help&apos;: &apos;\n[0*n] = attribute path relative to the source.&lt;br&gt;\n[1*n] = target attribute path relative to the instance.&lt;br&gt;\n[2*n] = value grouping : how much value belongs to an individual point.&lt;br&gt;\n[3*n] = (optional) additional attributes that must be created on instance. Must be a valid Lua table.&lt;br&gt;\n&lt;br&gt;\n\n[3*n] : A Lua-formatted table that describe how additional attributes must be created :&lt;br&gt;\n&lt;div style=&quot;background-color:rgba(0,0,0,0.3);&quot;&gt;\n&lt;tt&gt;\n{&lt;br&gt;\n&amp;nbsp;&amp;nbsp;[&quot;geometry.arbitrary.randomColor.inputType&quot;]=StringAttribute(&quot;color3&quot;),&lt;br&gt;\n&amp;nbsp;&amp;nbsp;[&quot;geometry.arbitrary.randomColor.scope&quot;]=StringAttribute(&quot;primitive&quot;),&lt;br&gt;\n}\n&lt;/tt&gt;\n&lt;/div&gt;&apos;}" name="array"/>
+          </group_parameter>
+          <group_parameter name="About">
+            <string_parameter hints="{&apos;readOnly&apos;: True}" name="name" value="KuiSetup"/>
+            <string_parameter hints="{&apos;readOnly&apos;: True}" name="version" value="0.2.0"/>
+            <string_parameter hints="{&apos;readOnly&apos;: True, &apos;widget&apos;: &apos;null&apos;}" name="api_version" value="1.1.5"/>
+            <string_parameter hints="{&apos;readOnly&apos;: True}" name="info" value="Part of KUI setup. Configure attributes on the source (point-cloud) for the Instancer to pick-up."/>
+            <string_parameter hints="{&apos;readOnly&apos;: True}" name="author" value="&lt;Liam Collod monsieurlixm@gmail.com&gt;"/>
+            <string_parameter hints="{&apos;readOnly&apos;: True, &apos;widget&apos;: &apos;null&apos;}" name="path" value="Z:\packages-dev\KUI\resources\CustomNodes\KuiLib\kuisetup.pyc"/>
+            <string_parameter hints="{&apos;widget&apos;: &apos;scriptButton&apos;, &apos;scriptText&apos;: &apos;\nimport os.path\nimport webbrowser\n\ndoc_path = None\n\n# first try to get the path on the python class\ntry:\n    doc_path = node.documentation\nexcept:\n    pass\n\nif not doc_path:\n\n    tool_path = parameter.getParent().getChild(&quot;path&quot;).getValue(0)\n    doc_path = os.path.splitext(tool_path)[0] + &quot;.md&quot;\n    if not os.path.exists(doc_path):\n        doc_path = None\n\nif doc_path:\n    webbrowser.open(doc_path)\n&apos;}" name="open_documentation" value="&#0010;import os.path&#0010;import webbrowser&#0010;&#0010;doc_path = None&#0010;&#0010;# first try to get the path on the python class&#0010;try:&#0010;    doc_path = node.documentation&#0010;except:&#0010;    pass&#0010;&#0010;if not doc_path:&#0010;&#0010;    tool_path = parameter.getParent().getChild(&quot;path&quot;).getValue(0)&#0010;    doc_path = os.path.splitext(tool_path)[0] + &quot;.md&quot;&#0010;    if not os.path.exists(doc_path):&#0010;        doc_path = None&#0010;&#0010;if doc_path:&#0010;    webbrowser.open(doc_path)&#0010;"/>
+          </group_parameter>
+        </group_parameter>
+      </group_parameter>
+      <node baseType="Dot" name="In_KuiSetup_0002" type="Dot" x="0" y="150">
+        <port name="input" source="KuiSetup1.in" type="in"/>
+        <port name="output" type="out"/>
+        <group_parameter name="In_KuiSetup_0002"/>
+      </node>
+      <node baseType="Dot" name="Out_KuiSetup_0002" type="Dot" x="0" y="-500">
+        <port name="input" source="AttributeSet_settings_mb_kuis0008.out" type="in"/>
+        <port name="output" returns="out" type="out"/>
+        <group_parameter name="Out_KuiSetup_0002"/>
+      </node>
+      <node baseType="OpScript" name="OpScript_kuis0002" type="OpScript" x="0" y="0">
+        <port name="i0" source="In_KuiSetup_0002.output" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="OpScript_kuis0002">
+          <string_parameter name="CEL" value=""/>
+          <string_parameter expression="=^/user.pointcloud" name="location"/>
+          <group_parameter name="script">
+            <string_parameter name="lua" value="--[[&#0010;Add a geometry.point.width attribute to control the viewer&apos;s size of the points&#0010;or scale the existing one.&#0010;&#0010;[OpScript ]&#0010;user.point_scale = &quot;(float)(1): multiplier of the points scale in the viewer&quot;&#0010;parameters.location = &quot;pointcloud scene graph location&quot;&#0010;parameters.applyWhere = &quot;at specific location&quot;&#0010;]]&#0010;&#0010;local function run()&#0010;&#0010;  -- get OpArg&#0010;  local point_scale = Interface.GetOpArg(&quot;user.point_size&quot;)&#0010;  if not point_scale then&#0010;    point_scale = 1.0&#0010;  else&#0010;    point_scale = point_scale:getValue()&#0010;  end&#0010;&#0010;  local points_width = Interface.GetAttr(&quot;geometry.point.width&quot;)&#0010;  if points_width then&#0010;    points_width = points_width:getNearestSample(0)&#0010;  end&#0010;&#0010;  local points = Interface.GetAttr(&quot;geometry.point.P&quot;):getNearestSample(Interface.GetCurrentTime())&#0010;&#0010;  local point_scaled = {}&#0010;  for i=1, #points do&#0010;    if points_width then&#0010;      point_scaled[i] = points_width[i] * point_scale&#0010;    else&#0010;      point_scaled[i] = point_scale&#0010;    end&#0010;  end&#0010;&#0010;  Interface.SetAttr(&quot;geometry.point.width&quot;, FloatAttribute(point_scaled, 3))&#0010;  return&#0010;&#0010;end&#0010;&#0010;run()"/>
+          </group_parameter>
+          <string_parameter name="executionMode" value="immediate"/>
+          <string_parameter name="applyWhere" value="at specific location"/>
+          <string_parameter name="applyWhen" value="during op resolve"/>
+          <string_parameter name="modifierNameMode" value="node name"/>
+          <string_parameter name="modifierName" value="modifier"/>
+          <string_parameter name="resolveIds" value=""/>
+          <number_parameter name="recursiveEnable" value="0"/>
+          <string_parameter name="disableAt" value=""/>
+          <string_parameter name="inputBehavior" value="by index"/>
+          <number_parameter name="multisampleUserOpArgs" value="1"/>
+          <group_parameter name="user">
+            <number_parameter expression="=^/user.display.point_width" isexpression="true" name="point_size"/>
+          </group_parameter>
+        </group_parameter>
+      </node>
+      <node baseType="GenericAssign" name="VisibilityAssign_kuis0005" type="VisibilityAssign" x="0" y="-50">
+        <port name="input" source="OpScript_kuis0002.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="VisibilityAssign_kuis0005">
+          <string_parameter expression="=^/user.pointcloud" name="CEL"/>
+          <string_parameter name="location" value=""/>
+          <group_parameter name="args">
+            <group_parameter name="visible">
+              <number_parameter name="enable" value="1"/>
+              <number_parameter expression="=^/user.display.visible_in_render" isexpression="true" name="value"/>
+              <number_parameter name="default" value="1"/>
+              <string_parameter name="type" value="IntAttr"/>
+            </group_parameter>
+          </group_parameter>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_points_kuis0010" type="AttributeSet" x="0" y="-100">
+        <port name="A" source="VisibilityAssign_kuis0005.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_points_kuis0010">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.data.points.attr"/>
+          <string_parameter name="attributeType" value="string"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter name="i0" value="0"/>
+          </numberarray_parameter>
+          <stringarray_parameter expression="=^/user.points.attr" name="stringValue" size="2" tupleSize="2">
+            <string_parameter name="i0" value=""/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_points_count_kuis0011" type="AttributeSet" x="0" y="-150">
+        <port name="A" source="AttributeSet_points_kuis0010.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_points_count_kuis0011">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.data.points.count"/>
+          <string_parameter name="attributeType" value="integer"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter expression="=^/user.points.count_manual" isexpression="true" name="i0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="1" tupleSize="1">
+            <string_parameter name="i0" value=""/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_sources_kuis0012" type="AttributeSet" x="0" y="-200">
+        <port name="A" source="AttributeSet_points_count_kuis0011.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_sources_kuis0012">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.data.sources"/>
+          <string_parameter name="attributeType" value="string"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter name="i0" value="0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="6" tupleSize="2">
+            <string_parameter name="i0" value="/root/world/geo/src"/>
+            <string_parameter name="i1" value="0"/>
+            <string_parameter name="i2" value="/root/world/geo/src1"/>
+            <string_parameter name="i3" value="1"/>
+            <string_parameter name="i4" value="/root/world/geo/src2"/>
+            <string_parameter name="i5" value="2"/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_common_kuis0017" type="AttributeSet" x="0" y="-250">
+        <port name="A" source="AttributeSet_sources_kuis0012.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_common_kuis0017">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.data.common"/>
+          <string_parameter name="attributeType" value="string"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter name="i0" value="0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="9" tupleSize="3">
+            <string_parameter name="i0" value="geometry.arbitrary.scale.value"/>
+            <string_parameter name="i1" value="$scale"/>
+            <string_parameter name="i2" value="3"/>
+            <string_parameter name="i3" value="geometry.point.P"/>
+            <string_parameter name="i4" value="$translation"/>
+            <string_parameter name="i5" value="3"/>
+            <string_parameter name="i6" value="geometry.arbitrary.rotation.value"/>
+            <string_parameter name="i7" value="$rotation"/>
+            <string_parameter name="i8" value="3"/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_arbitrary_kuis0016" type="AttributeSet" x="0" y="-300">
+        <port name="A" source="AttributeSet_common_kuis0017.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_arbitrary_kuis0016">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.data.arbitrary"/>
+          <string_parameter name="attributeType" value="string"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter name="i0" value="0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="4" tupleSize="4">
+            <string_parameter name="i0" value="geometry.arbitrary.randomColor.value"/>
+            <string_parameter name="i1" value="instance.arbitrary.randomColor.value"/>
+            <string_parameter name="i2" value="3"/>
+            <string_parameter name="i3" value="{&#0010;    [&quot;geometry.arbitrary.randomColor.inputType&quot;]=StringAttribute(&quot;color3&quot;),&#0010;    [&quot;geometry.arbitrary.randomColor.scope&quot;]=StringAttribute(&quot;primitive&quot;),&#0010;}"/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_settings_degree2radian_kuis0008" type="AttributeSet" x="0" y="-350">
+        <port name="A" source="AttributeSet_arbitrary_kuis0016.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_settings_degree2radian_kuis0008">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.settings.convert_degree_to_radian"/>
+          <string_parameter name="attributeType" value="integer"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter expression="=^/user.settings.convert_degree_to_radian" isexpression="true" name="i0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="1" tupleSize="1">
+            <string_parameter name="i0" value=""/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_settings_matrix_kuis0008" type="AttributeSet" x="0" y="-400">
+        <port name="A" source="AttributeSet_settings_degree2radian_kuis0008.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_settings_matrix_kuis0008">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.settings.convert_trs_to_matrix"/>
+          <string_parameter name="attributeType" value="integer"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter expression="=^/user.settings.convert_trs_to_matrix" isexpression="true" name="i0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="1" tupleSize="1">
+            <string_parameter name="i0" value=""/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+      <node baseType="AttributeSet" name="AttributeSet_settings_mb_kuis0008" type="AttributeSet" x="0" y="-450">
+        <port name="A" source="AttributeSet_settings_matrix_kuis0008.out" type="in"/>
+        <port name="out" type="out"/>
+        <group_parameter name="AttributeSet_settings_mb_kuis0008">
+          <string_parameter name="mode" value="paths"/>
+          <string_parameter name="celSelection" value=""/>
+          <stringarray_parameter name="paths" size="1" tupleSize="1">
+            <string_parameter expression="=^/user.pointcloud" name="i0"/>
+          </stringarray_parameter>
+          <string_parameter name="action" value="Create/Override"/>
+          <string_parameter name="attributeName" value="instancing.settings.enable_motion_blur"/>
+          <string_parameter name="attributeType" value="integer"/>
+          <string_parameter name="groupInherit" value="Yes"/>
+          <string_parameter name="multisample" value="No"/>
+          <numberarray_parameter name="numberValue" size="1" tupleSize="1">
+            <number_parameter expression="=^/user.settings.enable_motion_blur" isexpression="true" name="i0"/>
+          </numberarray_parameter>
+          <stringarray_parameter name="stringValue" size="1" tupleSize="1">
+            <string_parameter name="i0" value=""/>
+          </stringarray_parameter>
+          <group_parameter name="groupValue"/>
+        </group_parameter>
+      </node>
+    </node>
+  </node>
+</katana>

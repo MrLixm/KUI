@@ -18,23 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ]]
-
+local _M_ = {}
 local logging = require("lllogger")
-local logger = logging:get_logger("kui.utils")
--- log message from here are only error
-logger.formatting:set_tbl_display_functions(false)
-logger.formatting:set_str_display_quotes(true)
+local logger = logging.getLogger(...)
 
-local function set_logger_level(self, level)
-  --[[
-  Propagate the level to all modules too
-  ]]
-  logger:set_level(level)
-end
-
-local _M = {}
-_M["logger"] = logger
-_M["set_logger_level"] = set_logger_level
 
 --[[ __________________________________________________________________________
   LUA UTILITIES
@@ -49,18 +36,18 @@ local mathpi = math.pi
 local mathabs = math.abs
 local type = type
 
-function _M:conkat(...)
+function _M_.conkat(...)
   --[[
   The loop-safe string concatenation method.
   ]]
   local buf = {}
-  for i=1, select("#",...) do
-    buf[ #buf + 1 ] = tostring(select(i,...))
+  for i = 1, select("#", ...) do
+    buf[#buf + 1] = tostring(select(i, ...))
   end
   return tableconcat(buf)
 end
 
-function _M:logerror(...)
+function _M_.logerror(...)
   --[[
   log an error first then stop the script by raising a lua error()
 
@@ -68,13 +55,13 @@ function _M:logerror(...)
     ...(any): message to log, composed of multiple arguments that will be
       converted to string using tostring()
   ]]
-  local logmsg = self:conkat(...)
+  local logmsg = _M_.conkat(...)
   logger:error(logmsg)
   error(logmsg)
 
 end
 
-function _M:logassert(toassert, ...)
+function _M_.logassert(toassert, ...)
   --[[
   Check is toassert is true else log an error.
 
@@ -82,7 +69,7 @@ function _M:logassert(toassert, ...)
     ...(any): arguments used for log's message. Converted to string.
   ]]
   if not toassert then
-    self:logerror(...)
+    _M_.logerror(...)
   end
   return toassert
 end
@@ -110,14 +97,13 @@ local function _get_attribute_class(kattribute)
   elseif Attribute.IsString(kattribute) == true then
     return StringAttribute
   else
-    _M:logerror(
-      "[_get_attribute_class] passed attribute <",
-      kattribute,
-      ">is not supported."
+    _M_:logerror(
+        "[_get_attribute_class] passed attribute <",
+        kattribute,
+        ">is not supported."
     )
   end
 end
-
 
 local function _get_attr_data(location, attr_path, static)
   --[[
@@ -150,7 +136,7 @@ local function _get_attr_data(location, attr_path, static)
   if static then
     values[0.0] = lattr:getNearestSample(0)
   else
-    for smplindex=0, lattr:getNumberOfTimeSamples() - 1 do
+    for smplindex = 0, lattr:getNumberOfTimeSamples() - 1 do
       smplindex = lattr:getSampleTime(smplindex)
       values[smplindex] = lattr:getNearestSample(smplindex)
     end
@@ -166,7 +152,7 @@ end
 -- PUBLIC -----------------
 
 
-function _M:get_attr_data(location, attr_path, default, static)
+function _M_.get_attr_data(location, attr_path, default, static)
   --[[
   Get the given attribute on the location.
   Return it as a lua table describing the DataAttribute structure it had.
@@ -191,8 +177,8 @@ function _M:get_attr_data(location, attr_path, default, static)
 
   if not out then
 
-    if default==error then
-      self:logerror(
+    if default == error then
+      _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
           "> doesn't have the attr_path <",
@@ -209,8 +195,7 @@ function _M:get_attr_data(location, attr_path, default, static)
 
 end
 
-
-function _M:get_attr_value(location, attr_path, default)
+function _M_.get_attr_value(location, attr_path, default)
   --[[
   Get the given attribute value on the location.
   Queried attribute is not multi-sampled and only it's value is returned
@@ -228,8 +213,8 @@ function _M:get_attr_value(location, attr_path, default)
 
   if not out then
 
-    if default==error then
-      self:logerror(
+    if default == error then
+      _M_.logerror(
           "[utils][get_attr_data] location <",
           location,
           "> doesn't have the attr_path <",
@@ -247,104 +232,34 @@ function _M:get_attr_value(location, attr_path, default)
 
 end
 
-
-function _M:get_user_attr(name, default_value)
-    --[[
-    Return an OpScipt user attribute.
-    If not found return the default_value. (unless asked to raise an error)
-
-    Args:
-        name(str): attribute location (don't need the <user.>)
-        default_value(any): value to return if user attr not found
-          you can use the <error> builtin to raise an error instead
-    Returns:
-        table or any: table of value on attribute or default value
-    ]]
-    local argvalue = Interface.GetOpArg(self:conkat("user.",name))
-
-    if argvalue then
-      return argvalue:getNearestSample(0)
-
-    elseif default_value==error then
-      self:logerror("[get_user_attr] user attribute <",name,"> not found.")
-
-    else
-      return default_value
-
-    end
-
-end
-
-
--- TODO see if the bottom method need to be deleted
-function _M:slice_attribute(attr, at_index, usearray)
+function _M_.get_user_attr(name, default_value)
   --[[
-  From the given DataAttribute return itself but with just the values at the
-  specified tuple index. This means getNumberOfValues==getTupleSize.
-
-  Support multiple time samples.
-  Expensive method, and ~ 75% slower if usearray==true
+  Return an OpScipt user attribute.
+  If not found return the default_value. (unless asked to raise an error)
 
   Args:
-    attr(DataAttribute): DataAttribute instance
-    at_index(num): starts at 0. Index of the tuple to return
-    usearray(bool or nil): if true use an Array instance instead of a DataAttribute one.
-
+      name(str): attribute location (don't need the <user.>)
+      default_value(any): value to return if user attr not found
+        you can use the <error> builtin to raise an error instead
   Returns:
-    DataAttribute: same DataAttribute as attr arg except with only the value asked.
+      table or any: table of value on attribute or default value
   ]]
-  local out = {}
-  local buf
-  local array
-  local class = self:get_attribute_class(attr)
+  local argvalue = Interface.GetOpArg(_M_.conkat("user.", name))
 
-  if at_index > attr:getNumberOfTuples() then
-    self:logerror(
-        "[slice_attribute] at_index arg <",
-        at_index,
-        "> specified for attr is not valid: should be inferior to",
-        attr:getNumberOfTuples()
-    )
-  end
+  if argvalue then
+    return argvalue:getNearestSample(0)
 
-  if usearray then
-
-    for _, smpl in ipairs(attr:getSamples()) do
-
-      buf = {}
-      array = smpl:toArray()
-      for i=0, attr:getTupleSize() - 1 do
-        buf[#buf+1] = array:get(at_index + i)
-      end
-
-      out[smpl:getSampleTime()] = buf
-
-    end
+  elseif default_value == error then
+    _M_.logerror("[get_user_attr] user attribute <", name, "> not found.")
 
   else
-
-    for smplindex=0, attr:getNumberOfTimeSamples() - 1 do
-      buf = {}
-      smplindex = attr:getSampleTime(smplindex)
-      array = attr:getNearestSample(smplindex)
-
-      for i=1, attr:getTupleSize() do
-        buf[#buf+1] = array[at_index + i]
-      end
-
-      out[smplindex] = buf
-
-    end
+    return default_value
 
   end
-
-  out = class(out, attr:getTupleSize())
-  return out
 
 end
 
-
-function _M.degree_to_radian(rotation)
+function _M_.degree_to_radian(rotation)
   --[[
   Args:
     rotation(num): rotation value to convert to radian
@@ -352,11 +267,10 @@ function _M.degree_to_radian(rotation)
     num:
       rotation value converted to radian
   ]]
-  return rotation * (mathpi/180.0)
+  return rotation * (mathpi / 180.0)
 end
 
-
-function _M.radian_to_degree(radian)
+function _M_.radian_to_degree(radian)
   --[[
   Args:
     radian(num): radian value to convert to degree
@@ -364,11 +278,10 @@ function _M.radian_to_degree(radian)
     num:
       radian value converted to degree
   ]]
-  return radian * (180.0/mathpi)
+  return radian * (180.0 / mathpi)
 end
 
-
-function _M.get_katana_version()
+function _M_.get_katana_version()
   --[[
   Returns:
     num:
@@ -382,8 +295,7 @@ function _M.get_katana_version()
 
 end
 
-
-function _M:get_nearest_from_samples(samples, nearest)
+function _M_.get_nearest_from_samples(samples, nearest)
   --[[
   Source: https://stackoverflow.com/a/5464961/13806195
 
@@ -399,10 +311,10 @@ function _M:get_nearest_from_samples(samples, nearest)
 
   for sample, _ in pairs(samples) do
 
-      if not smallestSoFar or
-      (mathabs(nearest - smallestSoFar) > mathabs(sample - nearest)) then
-          smallestSoFar = sample
-      end
+    if not smallestSoFar or
+        (mathabs(nearest - smallestSoFar) > mathabs(sample - nearest)) then
+      smallestSoFar = sample
+    end
 
   end
 
@@ -410,7 +322,7 @@ function _M:get_nearest_from_samples(samples, nearest)
 
 end
 
-function _M:get_samples_list_from(...)
+function _M_.get_samples_list_from(...)
   --[[
   Args:
     ...(table(s) or nil): multiple tables of time samples
@@ -423,16 +335,16 @@ function _M:get_samples_list_from(...)
   local out = {}
   local t
 
-  for i=1, select("#",...) do
+  for i = 1, select("#", ...) do
 
-    t = select(i,...)
+    t = select(i, ...)
 
-    if t and type(t)=="table" then
+    if t and type(t) == "table" then
 
       for smpl, _ in pairs(t) do
         if not samples_list[smpl] then
           samples_list[smpl] = true
-          out[#out+1] = smpl
+          out[#out + 1] = smpl
         end
       end
 
@@ -444,8 +356,7 @@ function _M:get_samples_list_from(...)
 
 end
 
-
-function _M:path_rel_to_abs(rel_path, source_path)
+function _M_.path_rel_to_abs(rel_path, source_path)
   --[[
   Args:
     rel_path(string): relative path starting (or not) with dot(s)
@@ -461,12 +372,12 @@ function _M:path_rel_to_abs(rel_path, source_path)
 
   local out = {}
 
-  for i=1, #source_path - (#match - 1) do
-    out[#out+1] = source_path[i]
+  for i = 1, #source_path - (#match - 1) do
+    out[#out + 1] = source_path[i]
   end
   -- delete the relatives dot found while adding
-  out[#out+1] = rel_path:gsub(("^%s"):format(match), "")
+  out[#out + 1] = rel_path:gsub(("^%s"):format(match), "")
   return tableconcat(out, ".")
 end
 
-return _M
+return _M_

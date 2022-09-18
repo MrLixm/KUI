@@ -20,12 +20,10 @@ limitations under the License.
 ]]
 
 local logging = require("lllogger")
-local logger = logging:get_logger("kui.boxCulling")
-logger.formatting:set_tbl_display_functions(false)
-logger.formatting:set_str_display_quotes(true)
-
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
+
+local logger = logging.getLogger(...)
 
 
 --[[ __________________________________________________________________________
@@ -48,11 +46,11 @@ local function is_point_in_boundingbox(bounding_box, point)
   if not (point[1] > bb[1]) or not (point[1] < bb[2]) then
     return false
 
-  -- Y values
+    -- Y values
   elseif not (point[2] > bb[3]) or not (point[2] < bb[4]) then
     return false
 
-  -- Z values
+    -- Z values
   elseif not (point[3] > bb[5]) or not (point[3] < bb[6]) then
     return false
 
@@ -61,7 +59,6 @@ local function is_point_in_boundingbox(bounding_box, point)
   return true
 
 end
-
 
 local function locations_to_bounds(meshs_locations)
   --[[
@@ -81,15 +78,15 @@ local function locations_to_bounds(meshs_locations)
   local cullingMeshBound
   local cullingMesh_transformedBounds
 
-  for i=0, #meshs_locations-1 do
+  for i = 0, #meshs_locations - 1 do
     -- Get the bounding_box of the culling mesh.
     --    cullingMeshXform: GroupAttribute
-    cullingMeshXformAttr = Interface.GetGlobalXFormGroup(meshs_locations[i+1])
-    cullingMeshBound = Interface.GetBoundAttr(meshs_locations[i+1], 0)
+    cullingMeshXformAttr = Interface.GetGlobalXFormGroup(meshs_locations[i + 1])
+    cullingMeshBound = Interface.GetBoundAttr(meshs_locations[i + 1], 0)
     cullingMesh_transformedBounds = XFormUtils.CalcTransformedBoundsAtExistingTimes(
         cullingMeshXformAttr, cullingMeshBound)
     -- add the bb to the table
-    cullingMeshsBounds[i+1] = cullingMesh_transformedBounds
+    cullingMeshsBounds[i + 1] = cullingMesh_transformedBounds
   end
 
   return cullingMeshsBounds
@@ -107,14 +104,14 @@ local function run()
 
   local time = Interface.GetCurrentTime()
 
-  local u_pointcloud_sg = utils:get_user_attr(
-    "pointcloud_sg",
-    error
+  local u_pointcloud_sg = utils.get_user_attr(
+      "pointcloud_sg",
+      error
   )[1]  -- type: str
   -- culling_locations(table): {"CEL","CEL",...}
-  local culling_locations = utils:get_user_attr(
-    "culling_locations",
-    error
+  local culling_locations = utils.get_user_attr(
+      "culling_locations",
+      error
   )
 
   -- process the source pointcloud
@@ -138,17 +135,17 @@ local function run()
   local current_point = {}
   local point_visibility
 
-  for i=0, pointdata.points.count - 1 do
+  for i = 0, pointdata.points.count - 1 do
 
     point_visibility = 1  -- the point is visible by default
 
-    current_point[1] = points[i*3+1]
-    current_point[2] = points[i*3+2]
-    current_point[3] = points[i*3+3]
+    current_point[1] = points[i * 3 + 1]
+    current_point[2] = points[i * 3 + 2]
+    current_point[3] = points[i * 3 + 3]
 
     -- If the point is in one of the culling mesh set its visibility to 0
-    for cmi=0, #cullingMeshsBounds-1 do
-      if is_point_in_boundingbox(cullingMeshsBounds[cmi+1], current_point) then
+    for cmi = 0, #cullingMeshsBounds - 1 do
+      if is_point_in_boundingbox(cullingMeshsBounds[cmi + 1], current_point) then
         point_visibility = 0
       end
     end

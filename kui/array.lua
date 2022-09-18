@@ -18,23 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ]]
-
+local _M_ = {}
 local logging = require("lllogger")
-local logger = logging:get_logger("kui.array")
-logger:set_level("debug")
-logger.formatting:set_tbl_display_functions(false)
-
 local PointCloudData = require("kui.PointCloudData")
 local utils = require("kui.utils")
 
-local function set_logger_level(self, level)
-  --[[
-  Propagate the level to all modules too
-  ]]
-  logger:set_level(level)
-  PointCloudData:set_logger_level(level)
-  utils:set_logger_level(level)
-end
+local logger = logging.getLogger(...)
 
 --[[ __________________________________________________________________________
   API
@@ -45,17 +34,16 @@ end
 -- if the token doesnt have any value on point_data it will not be added.
 -- ! order is important !
 local token_target = {
-  { ["token"]="sources", ["target"]="geometry.instanceSource" },
-  { ["token"]="index", ["target"]="geometry.instanceIndex" },
-  { ["token"]="skip", ["target"]="geometry.instanceSkipIndex" },
-  { ["token"]="matrix", ["target"]="geometry.instanceMatrix" },
-  { ["token"]="translation", ["target"]="geometry.instanceTranslate" },
-  { ["token"]="rotationZ", ["target"]="geometry.instanceRotateZ" },
-  { ["token"]="rotationY", ["target"]="geometry.instanceRotateY" },
-  { ["token"]="rotationX", ["target"]="geometry.instanceRotateX" },
-  { ["token"]="scale", ["target"]="geometry.instanceScale" },
+  { ["token"] = "sources", ["target"] = "geometry.instanceSource" },
+  { ["token"] = "index", ["target"] = "geometry.instanceIndex" },
+  { ["token"] = "skip", ["target"] = "geometry.instanceSkipIndex" },
+  { ["token"] = "matrix", ["target"] = "geometry.instanceMatrix" },
+  { ["token"] = "translation", ["target"] = "geometry.instanceTranslate" },
+  { ["token"] = "rotationZ", ["target"] = "geometry.instanceRotateZ" },
+  { ["token"] = "rotationY", ["target"] = "geometry.instanceRotateY" },
+  { ["token"] = "rotationX", ["target"] = "geometry.instanceRotateX" },
+  { ["token"] = "scale", ["target"] = "geometry.instanceScale" },
 }
-
 
 local InstancingArray = {}
 function InstancingArray:new(point_data)
@@ -115,7 +103,7 @@ function InstancingArray:new(point_data)
         for addit_target, addit_value in pairs(buf) do
 
           if not Attribute.IsAttribute(addit_value) then
-            utils:logerror(
+            utils.logerror(
                 "[array][build] Additional key <",
                 addit_target,
                 "> has a invalid value (not Attribute):",
@@ -143,7 +131,7 @@ end
 -- processes ------------------------------------------------------------------
 
 
-local function run()
+function _M_.run()
   --[[
   Create the instance
   ]]
@@ -151,7 +139,7 @@ local function run()
   local stime = os.clock()
   local time = Interface.GetCurrentTime() -- int
 
-  local u_pointcloud_sg = utils:get_user_attr("pointcloud_sg", error)[1]
+  local u_pointcloud_sg = utils.get_user_attr("pointcloud_sg", error)[1]
 
   -- process the source pointcloud
   logger:info("[run] Started processing source <", u_pointcloud_sg, ">.")
@@ -169,14 +157,9 @@ local function run()
 
   stime = os.clock() - stime
   logger:info(
-      "[run] Finished in ",stime,"s for pointcloud <",u_pointcloud_sg,">."
+      "[run] Finished in ", stime, "s for pointcloud <", u_pointcloud_sg, ">."
   )
 
 end
 
-
-return {
-  ["run"] = run,
-  ["set_logger_level"] = set_logger_level,
-  ["logger"] = logger
-}
+return _M_

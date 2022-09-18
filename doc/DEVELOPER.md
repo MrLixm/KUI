@@ -32,6 +32,14 @@ Modifications will mostly be in [PointCloudData](../kui/PointCloudData.lua).
 
 TODO
 
+# Macros
+
+macros found in [`../resources/Macros`](../resources/Macros) are auto-generated
+by [`../dev/macroGen.py`](../dev/macroGen.py).
+
+`macroGen` need to be called from a Katana session and will use the `katananodling` custom nodes
+as a source to be converted to XML.
+
 # Tests
 
 To test KUI you can open the Katana scene [kui.tests.katana](../dev/scenes/kui.tests.katana).
@@ -39,10 +47,11 @@ To test KUI you can open the Katana scene [kui.tests.katana](../dev/scenes/kui.t
 A scene from RenderMan is also available at the same location that allow you
 to test motion-blur using a different pointcloud.
 
-To launch these scenes you can use the batch launchers (Windows) located in
-[`../dev/launchers`](../dev/launchers). Before launching Katana it is recommended
-to run [copy2prefs.py](../dev/copy2prefs.py) if you made modifications to KUI
-files or if it's the first time you are launching it after cloning this repo.
+To launch these scenes you can use the launchers located in
+[`../dev`](../dev) (they are made for Windows + git bash)
+
+All the test scenes need `katananodling` to be configured properly, else you will
+have corrupted nodes.
 
 ---
 [![root](https://img.shields.io/badge/back_to_root-536362?)](../README.md)

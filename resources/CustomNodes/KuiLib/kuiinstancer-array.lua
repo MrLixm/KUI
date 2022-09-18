@@ -17,16 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ]]
-local hier = require("kui.hierarchical")
+local array = require("kui.array")
 local utils = require("kui.utils")
--- don't print/log anything here, repeated times number of points.
+local logging = require("lllogger")
 
-if Interface.AtRoot() then
-  local log_level = utils:get_user_attr("log_level", "info")[1]
-  hier:set_logger_level(log_level)
-  hier:run_root()
+local log_level = utils.get_user_attr("log_level", {"INFO"})[1]
+logging.getLogger("kui.array"):setLevel(logging.LEVELS[log_level])
 
-else
-  -- don't print/log anything here too, repeated times number of points.
-  hier:run_not_root()
-end
+array.run()
